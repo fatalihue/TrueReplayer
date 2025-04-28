@@ -448,6 +448,72 @@ namespace TrueReplayer
             }
         }
 
+        private async void DeleteProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProfilesListBox.SelectedItem is string selectedProfile)
+            {
+                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
+                if (index >= 0 && index < profileFilePaths.Count)
+                {
+                    string filePath = profileFilePaths[index];
+
+                    var confirmResult = WinForms.MessageBox.Show($"Delete profile '{selectedProfile}'?", "Confirm Delete", WinForms.MessageBoxButtons.YesNo, WinForms.MessageBoxIcon.Warning);
+                    if (confirmResult == WinForms.DialogResult.Yes)
+                    {
+                        try
+                        {
+                            if (File.Exists(filePath))
+                                File.Delete(filePath);
+
+                            RefreshProfileList();
+                        }
+                        catch (Exception ex)
+                        {
+                            WinForms.MessageBox.Show($"Error deleting profile:\n{ex.Message}", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void OpenProfileFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProfilesListBox.SelectedItem is string selectedProfile)
+            {
+                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
+                if (index >= 0 && index < profileFilePaths.Count)
+                {
+                    string filePath = profileFilePaths[index];
+                    string? folderPath = Path.GetDirectoryName(filePath);
+
+                    if (folderPath != null && Directory.Exists(folderPath))
+                    {
+                        try
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+                            {
+                                FileName = folderPath,
+                                UseShellExecute = true,
+                                Verb = "open"
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            WinForms.MessageBox.Show($"Error opening folder:\n{ex.Message}", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ProfilesListBox_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is string profile)
+            {
+                ProfilesListBox.SelectedItem = profile;
+            }
+        }
+
         private void KeyEditTextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
         {
             if (sender is not Microsoft.UI.Xaml.Controls.TextBox textBox) return;

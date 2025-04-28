@@ -28,11 +28,19 @@
             <TextBlock Text="🎮 TrueReplayer" FontSize="24" FontWeight="SemiBold" Foreground="#6e6e6e" Grid.ColumnSpan="3" />
 
             <ListView x:Name="ProfilesListBox"
-                      Grid.Row="1" Grid.Column="0" Margin="0,0,8,0"
-                      Background="#2b2b2b" BorderBrush="#3e3e3e" BorderThickness="1"
-                      SelectionMode="Single"
-                      IsItemClickEnabled="True"
-                      ItemClick="ProfilesListBox_ItemClick">
+                        Grid.Row="1" Grid.Column="0" Margin="0,0,8,0"
+                        Background="#2b2b2b" BorderBrush="#3e3e3e" BorderThickness="1"
+                        SelectionMode="Single"
+                        IsItemClickEnabled="True"
+                        ItemClick="ProfilesListBox_ItemClick"
+                        RightTapped="ProfilesListBox_RightTapped">
+
+                <ListView.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Delete" Click="DeleteProfile_Click"/>
+                        <MenuFlyoutItem Text="Open Folder" Click="OpenProfileFolder_Click"/>
+                    </MenuFlyout>
+                </ListView.ContextFlyout>
 
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
