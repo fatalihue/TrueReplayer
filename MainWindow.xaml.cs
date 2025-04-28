@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml;
 using Microsoft.UI;
+using Microsoft.VisualBasic;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -514,6 +515,49 @@ namespace TrueReplayer
             }
         }
 
+        private async void RenameProfile_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProfilesListBox.SelectedItem is string selectedProfile)
+            {
+                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
+                if (index >= 0 && index < profileFilePaths.Count)
+                {
+                    string oldFilePath = profileFilePaths[index];
+                    string? folderPath = Path.GetDirectoryName(oldFilePath);
+
+                    if (folderPath != null)
+                    {
+                        string? newName = await ShowRenameDialogAsync(selectedProfile);
+
+                        if (!string.IsNullOrWhiteSpace(newName))
+                        {
+                            if (!newName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                                newName += ".json";
+
+                            string newFilePath = Path.Combine(folderPath, newName);
+
+                            try
+                            {
+                                if (File.Exists(newFilePath))
+                                {
+                                    WinForms.MessageBox.Show($"A profile named '{newName}' already exists.", "Rename Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Warning);
+                                }
+                                else
+                                {
+                                    File.Move(oldFilePath, newFilePath);
+                                    RefreshProfileList();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                WinForms.MessageBox.Show($"Error renaming profile:\n{ex.Message}", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private void KeyEditTextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
         {
             if (sender is not Microsoft.UI.Xaml.Controls.TextBox textBox) return;
@@ -547,6 +591,45 @@ namespace TrueReplayer
             var selectedIndex = ActionsDataGrid.SelectedIndex;
             ActionsDataGrid.SelectedItem = null;
             ActionsDataGrid.SelectedIndex = selectedIndex;
+        }
+
+        private async Task<string?> ShowRenameDialogAsync(string currentName)
+        {
+            var inputTextBox = new Microsoft.UI.Xaml.Controls.TextBox
+            {
+                PlaceholderText = "New profile name...",
+                Text = currentName,
+                Margin = new Thickness(0, 10, 0, 0)
+            };
+
+            var dialog = new ContentDialog
+            {
+                Title = "Rename Profile",
+                XamlRoot = this.Content.XamlRoot,
+                RequestedTheme = ElementTheme.Dark,
+                PrimaryButtonText = "Rename",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateGray),
+                Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
+                Content = inputTextBox
+            };
+
+            dialog.Loaded += (s, e) =>
+            {
+                inputTextBox.Focus(FocusState.Programmatic);
+                inputTextBox.SelectAll();
+            };
+
+            var result = await dialog.ShowAsync();
+
+            if (result == ContentDialogResult.Primary)
+            {
+                string newName = inputTextBox.Text.Trim();
+                return string.IsNullOrEmpty(newName) ? null : newName;
+            }
+
+            return null;
         }
 
         #endregion

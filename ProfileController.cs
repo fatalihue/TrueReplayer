@@ -40,6 +40,19 @@ namespace TrueReplayer.Controllers
 
                 try
                 {
+                    if (File.Exists(dialog.FileName))
+                    {
+                        var result = WinForms.MessageBox.Show(
+                            $"A file named '{Path.GetFileName(dialog.FileName)}' already exists.\nDo you want to overwrite it?",
+                            "Confirm Overwrite",
+                            WinForms.MessageBoxButtons.YesNo,
+                            WinForms.MessageBoxIcon.Question
+                        );
+
+                        if (result != WinForms.DialogResult.Yes)
+                            return;
+                    }
+
                     await SettingsManager.SaveProfileAsync(dialog.FileName, profile);
                     window.RefreshProfileList(); // Atualiza lista após salvar
                 }
