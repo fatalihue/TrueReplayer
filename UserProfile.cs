@@ -18,8 +18,8 @@ namespace TrueReplayer.Models
         public int LoopCount { get; set; } = 0;
         public bool LoopIntervalEnabled { get; set; } = false;
         public int LoopInterval { get; set; } = 1000;
-        public bool AlwaysOnTop { get; set; } = true;
-        public bool MinimizeToTray { get; set; } = true;
+        public bool AlwaysOnTop { get; set; } = false;
+        public bool MinimizeToTray { get; set; } = false;
         public int WindowX { get; set; } = -1;
         public int WindowY { get; set; } = -1;
         public int WindowWidth { get; set; } = 790;
@@ -41,8 +41,8 @@ namespace TrueReplayer.Models
             LoopCount = 0,
             LoopIntervalEnabled = false,
             LoopInterval = 1000,
-            AlwaysOnTop = true,
-            MinimizeToTray = true,
+            AlwaysOnTop = false,
+            MinimizeToTray = false,
             WindowX = -1,
             WindowY = -1,
             WindowWidth = 790,

@@ -1,32 +1,33 @@
-using CommunityToolkit.WinUI.UI.Controls;
-using Controls = CommunityToolkit.WinUI.UI.Controls;
-using Microsoft.UI.Windowing;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml;
-using Microsoft.UI;
-using Microsoft.VisualBasic;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System;
-using TrueReplayer.Controllers;
-using TrueReplayer.Helpers;
-using TrueReplayer.Interop;
-using TrueReplayer.Models;
-using TrueReplayer.Services;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using Microsoft.UI.Xaml.Media;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Graphics;
 using Windows.Storage.Pickers;
-using WinForms = System.Windows.Forms;
 using WinRT.Interop;
+using CommunityToolkit.WinUI.UI.Controls;
+using Controls = CommunityToolkit.WinUI.UI.Controls;
+using WinForms = System.Windows.Forms;
 using WinUIControls = Microsoft.UI.Xaml.Controls;
+using TrueReplayer.Controllers;
+using TrueReplayer.Helpers;
+using TrueReplayer.Interop;
+using TrueReplayer.Managers;
+using TrueReplayer.Models;
+using TrueReplayer.Services;
 
 namespace TrueReplayer
 {
@@ -50,30 +51,13 @@ namespace TrueReplayer
         private LoopControlManager loopControlManager;
         private ProfileController profileController;
         private ActionEditorController actionEditorController;
-        private List<string> profileFilePaths = new();
-        private string selectedProfileName = "";
+        private WindowEventManager windowEventManager;
+        private UIInteractionHandler uiInteractionHandler;
 
         public string recordingHotkey = "F2";
         public string replayHotkey = "F3";
 
         private IntPtr hwnd;
-
-        #endregion
-
-        #region Constants
-
-        private const int WM_USER = 0x0400;
-        private const int WM_LBUTTONDBLCLK = 0x0203;
-        private const int WM_RBUTTONUP = 0x0205;
-        private const int WM_SIZE = 0x0005;
-        private const int SIZE_MINIMIZED = 1;
-        private const int SW_HIDE = 0;
-        private const int SW_RESTORE = 9;
-        private static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        private static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
-        private const uint SWP_NOMOVE = 0x0002;
-        private const uint SWP_NOSIZE = 0x0001;
-        private const uint SWP_NOACTIVATE = 0x0010;
 
         #endregion
 
@@ -86,7 +70,9 @@ namespace TrueReplayer
 
             hwnd = WindowNative.GetWindowHandle(this);
 
-            HwndHookManager.SetupHook(hwnd, WndProc);
+            windowEventManager = new WindowEventManager(this);
+            HwndHookManager.SetupHook(hwnd, windowEventManager.WndProc);
+
             TrayIconService.Initialize(this, hwnd);
 
             string iconPath = Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico");
@@ -134,6 +120,12 @@ namespace TrueReplayer
                 ActionsDataGrid
             );
 
+            uiInteractionHandler = new UIInteractionHandler(
+                Actions,
+                mainController,
+                ActionsDataGrid
+            );
+
             hotkeyManager = new HotkeyManager(
                 ToggleRecordingTextBox,
                 ToggleReplayTextBox,
@@ -153,13 +145,11 @@ namespace TrueReplayer
 
             SetupInputHooks();
 
-            profileController = new ProfileController(this);
-
-            this.Closed += (_, _) => TrayIconService.RemoveTrayIcon();
-
             mainController.UpdateButtonStates();
 
-            LoadProfileList();
+            profileController = new ProfileController(this);
+
+            ProfilesListBox.ItemsSource = profileController.ProfileNames;
         }
 
         private void InitializeUIControls()
@@ -257,74 +247,48 @@ namespace TrueReplayer
 
         #region Window Management
 
-        private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam)
-        {
-            const int WM_SYSCOMMAND = 0x0112;
-            const int SC_MINIMIZE = 0xF020;
-            const int SC_MAXIMIZE = 0xF030;
-
-            if (msg == WM_USER + 1)
-            {
-                if ((int)lParam == WM_LBUTTONDBLCLK)
-                {
-                    ShowWindow(hwnd, SW_RESTORE);
-                    SetForegroundWindow(hwnd);
-                }
-                else if ((int)lParam == WM_RBUTTONUP)
-                {
-                    TrayIconService.ShowContextMenu();
-                }
-            }
-            else if (msg == WM_SYSCOMMAND)
-            {
-                int command = wParam.ToInt32() & 0xFFF0;
-
-                if (command == SC_MINIMIZE && MinimizeToTraySwitch.IsOn)
-                {
-                    TrayIconService.Initialize(this, hwnd);
-                    TrayIconService.ShowMinimizeBalloon();
-
-                    var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
-                    AppWindow.GetFromWindowId(windowId).Hide();
-
-                    return IntPtr.Zero;
-                }
-            }
-
-            return HwndHookManager.CallOriginalWndProc(hwnd, msg, wParam, lParam);
-        }
-
         public void AlwaysOnTopSwitch_Toggled(object sender, RoutedEventArgs e)
         {
-            var hwnd = WindowNative.GetWindowHandle(this);
-            SetWindowPos(hwnd, AlwaysOnTopSwitch.IsOn ? HWND_TOPMOST : HWND_NOTOPMOST,
-                         0, 0, 0, 0,
-                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+            windowEventManager.UpdateAlwaysOnTop(AlwaysOnTopSwitch.IsOn);
         }
 
         #endregion
 
         #region UI Event Handlers
 
-        private void RecordingButton_Click(object sender, RoutedEventArgs e) => mainController.ToggleRecording();
+        private void RecordingButton_Click(object sender, RoutedEventArgs e)
+        {
+            uiInteractionHandler.HandleRecordingButtonClick();
+        }
 
-        private void ReplayButton_Click(object sender, RoutedEventArgs e) => mainController.ToggleReplay(
-            EnableLoopSwitch.IsOn,
-            LoopCountTextBox.Text,
-            LoopIntervalSwitch.IsOn,
-            LoopIntervalTextBox.Text
-        );
+        private void ReplayButton_Click(object sender, RoutedEventArgs e)
+        {
+            uiInteractionHandler.HandleReplayButtonClick(
+                EnableLoopSwitch.IsOn,
+                LoopCountTextBox.Text,
+                LoopIntervalSwitch.IsOn,
+                LoopIntervalTextBox.Text
+            );
+        }
 
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
-            Actions.Clear();
-            mainController.UpdateButtonStates();
+            uiInteractionHandler.HandleClearButtonClick();
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
         {
-            ClipboardService.CopyActions(Actions);
+            uiInteractionHandler.HandleCopyButtonClick();
+        }
 
+        private void TextBox_SelectAll(object sender, RoutedEventArgs e)
+        {
+            uiInteractionHandler.HandleTextBoxSelectAll(sender);
+        }
+
+        private void KeyEditTextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            uiInteractionHandler.HandleKeyEditTextBoxPreviewKeyDown(sender, e);
         }
 
         #endregion
@@ -344,79 +308,47 @@ namespace TrueReplayer
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
             profileController.ResetProfile();
-            UpdateProfileColors(null);
+            profileController.UpdateProfileColors(null);
         }
 
         public void UpdateButtonStates() => mainController.UpdateButtonStates();
 
         public void CaptureWindowState(UserProfile profile) => profileController.CaptureWindowState(profile);
 
-        #endregion
-
-        #region Utility Methods
-
-        private void LoadProfileList()
-        {
-            string profileDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TrueReplayerProfiles");
-            Directory.CreateDirectory(profileDir);
-
-            var files = Directory.GetFiles(profileDir, "*.json");
-            profileFilePaths = files.ToList();
-            ProfilesListBox.ItemsSource = files.Select(f => Path.GetFileNameWithoutExtension(f)).ToList();
-        }
-
         private async void ProfilesListBox_ItemClick(object sender, ItemClickEventArgs e)
         {
             if (e.ClickedItem is string selectedProfile)
             {
-                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
-                if (index >= 0 && index < profileFilePaths.Count)
-                {
-                    string path = profileFilePaths[index];
-
-                    var profile = await SettingsManager.LoadProfileAsync(path);
-
-                    if (profile != null)
-                    {
-                        UserProfile.Current = profile;
-                        UISettingsManager.ApplyToUI(this, profile);
-                        WindowAppearanceService.ApplyWindowState(this, profile);
-
-                        selectedProfileName = selectedProfile;
-                        UpdateProfileColors(selectedProfileName);
-                    }
-                }
+                await profileController.HandleProfileItemClick(selectedProfile);
             }
         }
 
-        private void UpdateProfileColors(string selectedProfileName)
+        private async void DeleteProfile_Click(object sender, RoutedEventArgs e)
         {
-            if (ProfilesListBox?.Items == null)
-                return;
+            await profileController.DeleteSelectedProfileAsync();
+        }
 
-            foreach (var item in ProfilesListBox.Items)
+        private void OpenProfileFolder_Click(object sender, RoutedEventArgs e)
+        {
+            profileController.OpenSelectedProfileFolder();
+        }
+
+        private void ProfilesListBox_RightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is string profile)
             {
-                var container = ProfilesListBox.ContainerFromItem(item) as Microsoft.UI.Xaml.Controls.ListViewItem;
-                if (container == null)
-                    continue;
-
-                var contentPresenter = FindVisualChild<ContentPresenter>(container);
-                if (contentPresenter == null)
-                    continue;
-
-                var stackPanel = FindVisualChild<StackPanel>(contentPresenter);
-                if (stackPanel == null)
-                    continue;
-
-                var textBlock = stackPanel.Children.OfType<TextBlock>().FirstOrDefault();
-                if (textBlock == null)
-                    continue;
-
-                bool isSelected = selectedProfileName != null && item?.ToString() == selectedProfileName;
-                textBlock.Foreground = new SolidColorBrush(isSelected ? Colors.LimeGreen : Colors.White);
+                profileController.HandleProfileRightTapped(profile);
             }
         }
 
+        private async void RenameProfile_Click(object sender, RoutedEventArgs e)
+        {
+            await profileController.RenameSelectedProfileAsync();
+        }
+
+        #endregion
+
+        #region Utility Methods
 
         private T FindVisualChild<T>(DependencyObject parent) where T : DependencyObject
         {
@@ -436,202 +368,6 @@ namespace TrueReplayer
             return null;
         }
 
-        public void RefreshProfileList()
-        {
-            LoadProfileList();
-        }
-
-        private void TextBox_SelectAll(object sender, RoutedEventArgs e)
-        {
-            if (sender is WinUIControls.TextBox textBox)
-            {
-                textBox.SelectAll();
-            }
-        }
-
-        private async void DeleteProfile_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProfilesListBox.SelectedItem is string selectedProfile)
-            {
-                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
-                if (index >= 0 && index < profileFilePaths.Count)
-                {
-                    string filePath = profileFilePaths[index];
-
-                    var confirmResult = WinForms.MessageBox.Show($"Delete profile '{selectedProfile}'?", "Confirm Delete", WinForms.MessageBoxButtons.YesNo, WinForms.MessageBoxIcon.Warning);
-                    if (confirmResult == WinForms.DialogResult.Yes)
-                    {
-                        try
-                        {
-                            if (File.Exists(filePath))
-                                File.Delete(filePath);
-
-                            RefreshProfileList();
-                        }
-                        catch (Exception ex)
-                        {
-                            WinForms.MessageBox.Show($"Error deleting profile:\n{ex.Message}", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void OpenProfileFolder_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProfilesListBox.SelectedItem is string selectedProfile)
-            {
-                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
-                if (index >= 0 && index < profileFilePaths.Count)
-                {
-                    string filePath = profileFilePaths[index];
-                    string? folderPath = Path.GetDirectoryName(filePath);
-
-                    if (folderPath != null && Directory.Exists(folderPath))
-                    {
-                        try
-                        {
-                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
-                            {
-                                FileName = folderPath,
-                                UseShellExecute = true,
-                                Verb = "open"
-                            });
-                        }
-                        catch (Exception ex)
-                        {
-                            WinForms.MessageBox.Show($"Error opening folder:\n{ex.Message}", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
-                        }
-                    }
-                }
-            }
-        }
-
-        private void ProfilesListBox_RightTapped(object sender, RightTappedRoutedEventArgs e)
-        {
-            if (e.OriginalSource is FrameworkElement fe && fe.DataContext is string profile)
-            {
-                ProfilesListBox.SelectedItem = profile;
-            }
-        }
-
-        private async void RenameProfile_Click(object sender, RoutedEventArgs e)
-        {
-            if (ProfilesListBox.SelectedItem is string selectedProfile)
-            {
-                int index = ProfilesListBox.Items.IndexOf(selectedProfile);
-                if (index >= 0 && index < profileFilePaths.Count)
-                {
-                    string oldFilePath = profileFilePaths[index];
-                    string? folderPath = Path.GetDirectoryName(oldFilePath);
-
-                    if (folderPath != null)
-                    {
-                        string? newName = await ShowRenameDialogAsync(selectedProfile);
-
-                        if (!string.IsNullOrWhiteSpace(newName))
-                        {
-                            if (!newName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-                                newName += ".json";
-
-                            string newFilePath = Path.Combine(folderPath, newName);
-
-                            try
-                            {
-                                if (File.Exists(newFilePath))
-                                {
-                                    WinForms.MessageBox.Show($"A profile named '{newName}' already exists.", "Rename Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Warning);
-                                }
-                                else
-                                {
-                                    File.Move(oldFilePath, newFilePath);
-                                    RefreshProfileList();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                WinForms.MessageBox.Show($"Error renaming profile:\n{ex.Message}", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Error);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private void KeyEditTextBox_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
-        {
-            if (sender is not Microsoft.UI.Xaml.Controls.TextBox textBox) return;
-            if (ActionsDataGrid.SelectedItem is not ActionItem item) return;
-
-            e.Handled = true;
-
-            string? newKey = KeyUtils.NormalizeKeyName((int)e.Key);
-
-            if (string.IsNullOrEmpty(newKey))
-            {
-                newKey = e.Key switch
-                {
-                    Windows.System.VirtualKey.Control => "Ctrl",
-                    Windows.System.VirtualKey.LeftControl => "LeftCtrl",
-                    Windows.System.VirtualKey.RightControl => "RightCtrl",
-                    Windows.System.VirtualKey.Shift => "Shift",
-                    Windows.System.VirtualKey.LeftShift => "LeftShift",
-                    Windows.System.VirtualKey.RightShift => "RightShift",
-                    Windows.System.VirtualKey.Menu => "Alt",
-                    Windows.System.VirtualKey.LeftMenu => "LeftAlt",
-                    Windows.System.VirtualKey.RightMenu => "RightAlt",
-                    _ => null
-                };
-            }
-
-            if (string.IsNullOrEmpty(newKey)) return;
-
-            item.Key = newKey;
-
-            var selectedIndex = ActionsDataGrid.SelectedIndex;
-            ActionsDataGrid.SelectedItem = null;
-            ActionsDataGrid.SelectedIndex = selectedIndex;
-        }
-
-        private async Task<string?> ShowRenameDialogAsync(string currentName)
-        {
-            var inputTextBox = new Microsoft.UI.Xaml.Controls.TextBox
-            {
-                PlaceholderText = "New profile name...",
-                Text = currentName,
-                Margin = new Thickness(0, 10, 0, 0)
-            };
-
-            var dialog = new ContentDialog
-            {
-                Title = "Rename Profile",
-                XamlRoot = this.Content.XamlRoot,
-                RequestedTheme = ElementTheme.Dark,
-                PrimaryButtonText = "Rename",
-                CloseButtonText = "Cancel",
-                DefaultButton = ContentDialogButton.Primary,
-                Background = new SolidColorBrush(Microsoft.UI.Colors.DarkSlateGray),
-                Foreground = new SolidColorBrush(Microsoft.UI.Colors.White),
-                Content = inputTextBox
-            };
-
-            dialog.Loaded += (s, e) =>
-            {
-                inputTextBox.Focus(FocusState.Programmatic);
-                inputTextBox.SelectAll();
-            };
-
-            var result = await dialog.ShowAsync();
-
-            if (result == ContentDialogResult.Primary)
-            {
-                string newName = inputTextBox.Text.Trim();
-                return string.IsNullOrEmpty(newName) ? null : newName;
-            }
-
-            return null;
-        }
-
         #endregion
 
         #region P/Invoke and Structs
@@ -641,15 +377,6 @@ namespace TrueReplayer
 
         [DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [DllImport("user32.dll")]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
         #endregion
     }
