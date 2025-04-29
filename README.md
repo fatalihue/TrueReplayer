@@ -1,11 +1,14 @@
 # TrueReplayer
 
-**TrueReplayer** é um aplicativo Windows desenvolvido com **WinUI 3** que permite **gravar** e **reproduzir** ações do teclado, mouse e scroll automaticamente. Ideal para automações simples, testes repetitivos ou automação de tarefas no PC.
+**TrueReplayer** permite **gravar** e **reproduzir** ações do teclado, mouse e scroll automaticamente. Ideal para automações simples, testes repetitivos ou automação de tarefas no PC.
 
 ---
 
-![TrueReplayer_tndTBKp0rF](https://github.com/user-attachments/assets/252bee5b-2240-4076-bb5f-6e3db1372186)
+![TRapp1red](https://github.com/user-attachments/assets/3a380118-853f-437a-9aaa-118026519ca4)  ![TRapp2red](https://github.com/user-attachments/assets/8c696b9f-b592-414e-9f22-bda05bfbe605)
 
+---
+
+![TRapp3red](https://github.com/user-attachments/assets/d36fd98c-bdc6-449e-aa7c-ffd29302aa13)  ![TRapp4red](https://github.com/user-attachments/assets/fa38e165-286b-4712-8a8f-7ee28a65faed)
 
 ---
 
@@ -67,44 +70,5 @@
 
 - Perfis são salvos automaticamente no diretório `Documentos/TrueReplayerProfiles`.
 - O programa registra hooks globais de teclado e mouse, portanto, dependendo das configurações do Windows, pode ser necessário rodar o programa como administrador para capturar eventos corretamente.
-
----
-
-## 🧹 Principais Classes e Serviços
-
-| Componente | Função |
-|:-----------|:-------|
-| `ActionRecorder` | Grava eventos de teclado, mouse e scroll. |
-| `ReplayService` | Reproduz a sequência de ações gravadas. |
-| `MainController` | Coordena as ações principais (gravação, reprodução, UI). |
-| `HotkeyManager` | Gerencia os atalhos de gravação e reprodução. |
-| `ProfileController` | Salva e carrega perfis de ações em arquivos `.json`. |
-| `TrayIconService` | Gerencia o ícone e contexto da bandeja do sistema. |
-| `DelayManager` | Gerencia delays personalizados entre ações. |
-| `LoopControlManager` | Gerencia parâmetros de loop nas reproduções. |
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **C#**
-- **WinUI 3**
-- **Windows App SDK**
-- **CommunityToolkit.WinUI.UI.Controls**
-
----
-
-## 📂 Estrutura do Projeto
-
-```plaintext
-├── MainWindow.xaml            # Interface principal
-├── MainWindow.xaml.cs          # Lógica da janela principal
-├── Controllers/                # Controle da aplicação (MainController, HotkeyManager, etc.)
-├── Services/                   # Serviços auxiliares (ReplayService, TrayIconService, etc.)
-├── Models/                     # Modelos de dados (ActionItem, UserProfile)
-├── Interop/                    # Métodos nativos Win32 (Hooks, Window Management)
-├── Helpers/                    # Utilitários diversos
-└── Assets/                     # Ícones e recursos visuais
-```
 
 ---
