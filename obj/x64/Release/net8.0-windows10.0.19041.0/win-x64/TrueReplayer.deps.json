@@ -119,6 +119,10 @@
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.1425.11118"
           },
+          "System.IO.FileSystem.Watcher.dll": {
+            "assemblyVersion": "8.0.0.0",
+            "fileVersion": "8.0.1425.11118"
+          },
           "System.IO.IsolatedStorage.dll": {
             "assemblyVersion": "8.0.0.0",
             "fileVersion": "8.0.1425.11118"

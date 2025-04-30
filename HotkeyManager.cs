@@ -15,7 +15,7 @@ namespace TrueReplayer.Controllers
 
         public event Action<string>? OnHotkeyChanged;
 
-        public HotkeyManager(TextBox recordingTextBox, TextBox replayTextBox, string initialRecordingHotkey = "F2", string initialReplayHotkey = "F3")
+        public HotkeyManager(TextBox recordingTextBox, TextBox replayTextBox, string initialRecordingHotkey = "F9", string initialReplayHotkey = "F10")
         {
             this.recordingTextBox = recordingTextBox;
             this.replayTextBox = replayTextBox;

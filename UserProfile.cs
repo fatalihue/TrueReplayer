@@ -7,8 +7,8 @@ namespace TrueReplayer.Models
     {
         public static UserProfile Current { get; set; } = Default;
         public ObservableCollection<ActionItem> Actions { get; set; } = new();
-        public string RecordingHotkey { get; set; } = "F2";
-        public string ReplayHotkey { get; set; } = "F3";
+        public string RecordingHotkey { get; set; } = "F9";
+        public string ReplayHotkey { get; set; } = "F10";
         public bool RecordMouse { get; set; } = true;
         public bool RecordScroll { get; set; } = true;
         public bool RecordKeyboard { get; set; } = true;
@@ -30,8 +30,8 @@ namespace TrueReplayer.Models
 
         public static UserProfile Default => new UserProfile
         {
-            RecordingHotkey = "F2",
-            ReplayHotkey = "F3",
+            RecordingHotkey = "F9",
+            ReplayHotkey = "F10",
             RecordMouse = true,
             RecordScroll = true,
             RecordKeyboard = true,
@@ -51,4 +51,4 @@ namespace TrueReplayer.Models
             BatchDelay = "Delay (ms)"
         };
     }
-} //upd
+}

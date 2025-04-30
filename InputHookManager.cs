@@ -18,8 +18,8 @@ namespace TrueReplayer
         private static NativeMethods.LowLevelMouseProc _mouseProc = MouseHookCallback;
         private static NativeMethods.LowLevelKeyboardProc _keyboardProc = KeyboardHookCallback;
 
-        private static string _recordingHotkey = "F2";
-        private static string _replayHotkey = "F3";
+        private static string _recordingHotkey = "F9";
+        private static string _replayHotkey = "F10";
 
         private static DateTime? lastAltRightPressTime = null;
 

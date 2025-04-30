@@ -17,11 +17,6 @@ namespace TrueReplayer.Services
 
             appWindow.Resize(new Windows.Graphics.SizeInt32(850, 510));
 
-            //const int GWL_STYLE = -16;
-            //const int WS_THICKFRAME = 0x00040000;
-            //int style = GetWindowLong(hwnd, GWL_STYLE);
-            //SetWindowLong(hwnd, GWL_STYLE, style & ~WS_THICKFRAME);
-
             CustomizeTitleBar(appWindow);
             CenterWindow(appWindow, windowId);
         }

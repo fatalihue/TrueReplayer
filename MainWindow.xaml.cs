@@ -54,8 +54,8 @@ namespace TrueReplayer
         private WindowEventManager windowEventManager;
         private UIInteractionHandler uiInteractionHandler;
 
-        public string recordingHotkey = "F2";
-        public string replayHotkey = "F3";
+        public string recordingHotkey = "F9";
+        public string replayHotkey = "F10";
 
         private IntPtr hwnd;
 
@@ -81,8 +81,8 @@ namespace TrueReplayer
             SendMessage(hwnd, WM_SETICON, (IntPtr)1, hIcon);
             SendMessage(hwnd, WM_SETICON, (IntPtr)0, hIcon);
 
-            recordingHotkey = "F2";
-            replayHotkey = "F3";
+            recordingHotkey = "F9";
+            replayHotkey = "F10";
 
             mainController = null!;
 
@@ -380,4 +380,4 @@ namespace TrueReplayer
 
         #endregion
     }
-} //upd
+}
