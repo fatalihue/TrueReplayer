@@ -51,4 +51,4 @@ namespace TrueReplayer.Models
             BatchDelay = "Delay (ms)"
         };
     }
-}
+} //upd

@@ -223,7 +223,7 @@
                 </ScrollViewer>
             </Border>
 
-            <!-- Action Buttons -->
+            <!-- Action Buttons. -->
             <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Left" Margin="-1,0,0,0" Spacing="0">
                 <Button x:Name="RecordingButton" Content="Recording" Width="127" Margin="1" Click="RecordingButton_Click" Padding="1,8" CornerRadius="0" />
                 <Button x:Name="ReplayButton" Content="Replay" Width="140" Margin="1" Click="ReplayButton_Click" Padding="1,8" CornerRadius="0" />

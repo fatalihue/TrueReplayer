@@ -88,4 +88,4 @@ namespace TrueReplayer.Managers
             actionsDataGrid.SelectedIndex = selectedIndex;
         }
     }
-}
+} //upd

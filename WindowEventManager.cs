@@ -13,7 +13,6 @@ namespace TrueReplayer.Managers
         private readonly Window window;
         private readonly IntPtr hwnd;
 
-        // Constantes nativas
         private const int WM_USER = 0x0400;
         private const int WM_LBUTTONDBLCLK = 0x0203;
         private const int WM_RBUTTONUP = 0x0205;
@@ -86,4 +85,4 @@ namespace TrueReplayer.Managers
 
         #endregion
     }
-}
+} //upd
