@@ -4,11 +4,9 @@
 
 ---
 
-![TRapp1red](https://github.com/user-attachments/assets/3a380118-853f-437a-9aaa-118026519ca4)  ![TRapp2red](https://github.com/user-attachments/assets/8c696b9f-b592-414e-9f22-bda05bfbe605)
+![red1](https://github.com/user-attachments/assets/105f17fc-d752-4bbe-8d02-0b5bdb6d3f43)  ![red2](https://github.com/user-attachments/assets/a8d5e523-1089-4acc-b3fe-2e770826a0d2)
 
----
-
-![TRapp3red](https://github.com/user-attachments/assets/d36fd98c-bdc6-449e-aa7c-ffd29302aa13)  ![TRapp4red](https://github.com/user-attachments/assets/fa38e165-286b-4712-8a8f-7ee28a65faed)
+![red3](https://github.com/user-attachments/assets/df8a7415-6ada-4263-bf9d-b83c4ccb568b)  ![red4](https://github.com/user-attachments/assets/89423b94-5e59-4c3c-8b3c-7349203e0801)
 
 ---
 
@@ -30,7 +28,7 @@
   - Perfis armazenados em `Documentos/TrueReplayerProfiles`.
 
 - **Atalhos Personalizados**:
-  - Configure hotkeys para iniciar/pausar gravação (`default: F2`) e reprodução (`default: F3`).
+  - Configure hotkeys para iniciar/pausar gravação (`default: F9`) e reprodução (`default: F10`).
 
 - **Customização**:
   - Defina delays personalizados entre ações.
@@ -48,12 +46,12 @@
 
 1. **Gravando Ações**
    - Abra o aplicativo.
-   - Clique no botão **Record** ou pressione a hotkey configurada (`F2`).
+   - Clique no botão **Record** ou pressione a hotkey configurada (`F9`).
    - Realize as ações desejadas (cliques, rolagem, teclado).
    - Pressione **Record** novamente para parar.
 
 2. **Reproduzindo Ações**
-   - Após gravar, clique no botão **Replay** ou pressione a hotkey (`F3`).
+   - Após gravar, clique no botão **Replay** ou pressione a hotkey (`F10`).
    - Configure se desejar usar loop e o número de repetições.
 
 3. **Gerenciando Perfis**
