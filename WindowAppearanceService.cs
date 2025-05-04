@@ -15,7 +15,8 @@ namespace TrueReplayer.Services
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
             var appWindow = AppWindow.GetFromWindowId(windowId);
 
-            appWindow.Resize(new Windows.Graphics.SizeInt32(850, 510));
+            // Define tamanho inicial
+            appWindow.Resize(new SizeInt32(850, 510));
 
             CustomizeTitleBar(appWindow);
             CenterWindow(appWindow, windowId);
@@ -98,6 +99,7 @@ namespace TrueReplayer.Services
         }
 
         #region Win32
+
         private const int SW_MAXIMIZE = 3;
         private const int SW_RESTORE = 9;
         private const uint SWP_NOMOVE = 0x0002;
@@ -141,6 +143,7 @@ namespace TrueReplayer.Services
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
         #endregion
     }
 }

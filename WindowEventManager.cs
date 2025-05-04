@@ -17,6 +17,7 @@ namespace TrueReplayer.Managers
         private const int WM_LBUTTONDBLCLK = 0x0203;
         private const int WM_RBUTTONUP = 0x0205;
         private const int WM_SYSCOMMAND = 0x0112;
+        private const int WM_GETMINMAXINFO = 0x0024;
         private const int SC_MINIMIZE = 0xF020;
         private const int SW_RESTORE = 9;
         private const uint SWP_NOMOVE = 0x0002;
@@ -33,6 +34,15 @@ namespace TrueReplayer.Managers
 
         public IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam)
         {
+            if (msg == WM_GETMINMAXINFO)
+            {
+                MINMAXINFO mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam)!;
+                mmi.ptMinTrackSize.x = 850;
+                mmi.ptMinTrackSize.y = 510;
+                Marshal.StructureToPtr(mmi, lParam, true);
+                return IntPtr.Zero;
+            }
+
             if (msg == WM_USER + 1)
             {
                 if ((int)lParam == WM_LBUTTONDBLCLK)
@@ -84,5 +94,23 @@ namespace TrueReplayer.Managers
         private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
         #endregion
+    }
+
+    // Structs usadas para WM_GETMINMAXINFO
+    [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int x;
+        public int y;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MINMAXINFO
+    {
+        public POINT ptReserved;
+        public POINT ptMaxSize;
+        public POINT ptMaxPosition;
+        public POINT ptMinTrackSize;
+        public POINT ptMaxTrackSize;
     }
 }
