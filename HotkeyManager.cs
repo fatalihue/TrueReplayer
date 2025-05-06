@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml;
 using TrueReplayer.Helpers;
+using TrueReplayer.Models;
 
 namespace TrueReplayer.Controllers
 {
@@ -10,17 +11,16 @@ namespace TrueReplayer.Controllers
     {
         private readonly TextBox recordingTextBox;
         private readonly TextBox replayTextBox;
-        public string RecordingHotkey { get; private set; }
-        public string ReplayHotkey { get; private set; }
+
+        public string RecordingHotkey => UserProfile.Current.RecordingHotkey;
+        public string ReplayHotkey => UserProfile.Current.ReplayHotkey;
 
         public event Action<string>? OnHotkeyChanged;
 
-        public HotkeyManager(TextBox recordingTextBox, TextBox replayTextBox, string initialRecordingHotkey = "F9", string initialReplayHotkey = "F10")
+        public HotkeyManager(TextBox recordingTextBox, TextBox replayTextBox)
         {
             this.recordingTextBox = recordingTextBox;
             this.replayTextBox = replayTextBox;
-            RecordingHotkey = initialRecordingHotkey;
-            ReplayHotkey = initialReplayHotkey;
 
             recordingTextBox.Text = RecordingHotkey;
             replayTextBox.Text = ReplayHotkey;
@@ -38,15 +38,19 @@ namespace TrueReplayer.Controllers
             if (newKey == RecordingHotkey || newKey == ReplayHotkey) return;
 
             if (textBox == recordingTextBox)
-                RecordingHotkey = newKey;
+                UserProfile.Current.RecordingHotkey = newKey;
             else if (textBox == replayTextBox)
-                ReplayHotkey = newKey;
+                UserProfile.Current.ReplayHotkey = newKey;
             else return;
 
             textBox.Text = newKey;
             textBox.SelectionStart = newKey.Length;
 
-            InputHookManager.UpdateHotkeys(RecordingHotkey, ReplayHotkey);
+            InputHookManager.UpdateHotkeys(
+                UserProfile.Current.RecordingHotkey,
+                UserProfile.Current.ReplayHotkey
+            );
+
             OnHotkeyChanged?.Invoke(newKey);
 
             System.Diagnostics.Debug.WriteLine($"Hotkey atualizada: Gravar={RecordingHotkey}, Reproduzir={ReplayHotkey}");

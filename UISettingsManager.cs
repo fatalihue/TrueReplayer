@@ -50,9 +50,6 @@ namespace TrueReplayer.Services
             window.AlwaysOnTopSwitch.IsOn = profile.AlwaysOnTop;
             window.MinimizeToTraySwitch.IsOn = profile.MinimizeToTray;
 
-            window.recordingHotkey = profile.RecordingHotkey;
-            window.replayHotkey = profile.ReplayHotkey;
-
             InputHookManager.UpdateHotkeys(profile.RecordingHotkey, profile.ReplayHotkey);
 
             window.AlwaysOnTopSwitch_Toggled(null, null);

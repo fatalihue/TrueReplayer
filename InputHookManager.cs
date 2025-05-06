@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using TrueReplayer.Helpers;
 using TrueReplayer.Interop;
+using TrueReplayer.Models;
 
 namespace TrueReplayer
 {
@@ -18,11 +19,7 @@ namespace TrueReplayer
         private static NativeMethods.LowLevelMouseProc _mouseProc = MouseHookCallback;
         private static NativeMethods.LowLevelKeyboardProc _keyboardProc = KeyboardHookCallback;
 
-        private static string _recordingHotkey = "F9";
-        private static string _replayHotkey = "F10";
-
         private static DateTime? lastAltRightPressTime = null;
-
 
         public static void Start()
         {
@@ -30,14 +27,12 @@ namespace TrueReplayer
                 _mouseHookId = NativeMethods.SetMouseHook(_mouseProc);
             if (_keyboardHookId == IntPtr.Zero)
                 _keyboardHookId = NativeMethods.SetKeyboardHook(_keyboardProc);
-            System.Diagnostics.Debug.WriteLine($"Hooks iniciados: Mouse={_mouseHookId != IntPtr.Zero}, Keyboard={_keyboardHookId != IntPtr.Zero}");
+            Debug.WriteLine($"Hooks iniciados: Mouse={_mouseHookId != IntPtr.Zero}, Keyboard={_keyboardHookId != IntPtr.Zero}");
         }
 
         public static void UpdateHotkeys(string recordingKey, string replayKey)
         {
-            _recordingHotkey = recordingKey;
-            _replayHotkey = replayKey;
-            System.Diagnostics.Debug.WriteLine($"Hotkeys atualizados: Recording={_recordingHotkey}, Replay={_replayHotkey}");
+            Debug.WriteLine($"Hotkeys atualizados: Recording={recordingKey}, Replay={replayKey}");
         }
 
         private static IntPtr MouseHookCallback(int nCode, IntPtr wParam, IntPtr lParam)
@@ -90,7 +85,7 @@ namespace TrueReplayer
                 if (vkCode == 165 && isDown)
                 {
                     lastAltRightPressTime = DateTime.Now;
-                    System.Diagnostics.Debug.WriteLine("Alt Direito detectado. Iniciando supressão de Ctrl.");
+                    Debug.WriteLine("Alt Direito detectado. Iniciando supressão de Ctrl.");
                 }
 
                 if (vkCode == 162 && isDown && lastAltRightPressTime != null)
@@ -98,28 +93,19 @@ namespace TrueReplayer
                     var elapsed = DateTime.Now - lastAltRightPressTime.Value;
                     if (elapsed.TotalMilliseconds < 100)
                     {
-                        System.Diagnostics.Debug.WriteLine("Ctrl suprimido por AltGr.");
+                        Debug.WriteLine("Ctrl suprimido por AltGr.");
                         return NativeMethods.CallNextHookEx(IntPtr.Zero, nCode, wParam, lParam);
                     }
                 }
 
-                string key;
+                string key = (vkCode == 164 || vkCode == 165) ? "Alt" : KeyUtils.NormalizeKeyName(vkCode);
 
-                if (vkCode == 164 || vkCode == 165)
-                {
-                    key = "Alt";
-                }
-                else
-                {
-                    key = KeyUtils.NormalizeKeyName(vkCode);
-                }
-
-                if (key == _recordingHotkey || key == _replayHotkey)
+                if (key == UserProfile.Current.RecordingHotkey || key == UserProfile.Current.ReplayHotkey)
                 {
                     if (isDown)
                     {
                         OnHotkeyPressed?.Invoke(key);
-                        System.Diagnostics.Debug.WriteLine($"Hotkey {key} disparada e suprimida.");
+                        Debug.WriteLine($"Hotkey {key} disparada e suprimida.");
                     }
                     return (IntPtr)1;
                 }

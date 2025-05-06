@@ -54,9 +54,6 @@ namespace TrueReplayer
         private WindowEventManager windowEventManager;
         private UIInteractionHandler uiInteractionHandler;
 
-        public string recordingHotkey = "F9";
-        public string replayHotkey = "F10";
-
         private IntPtr hwnd;
 
         #endregion
@@ -80,9 +77,6 @@ namespace TrueReplayer
             const int WM_SETICON = 0x80;
             SendMessage(hwnd, WM_SETICON, (IntPtr)1, hIcon);
             SendMessage(hwnd, WM_SETICON, (IntPtr)0, hIcon);
-
-            recordingHotkey = "F9";
-            replayHotkey = "F10";
 
             mainController = null!;
 
@@ -126,19 +120,6 @@ namespace TrueReplayer
                 ActionsDataGrid
             );
 
-            hotkeyManager = new HotkeyManager(
-                ToggleRecordingTextBox,
-                ToggleReplayTextBox,
-                recordingHotkey,
-                replayHotkey
-            );
-
-            hotkeyManager.OnHotkeyChanged += (key) =>
-            {
-                recordingHotkey = hotkeyManager.RecordingHotkey;
-                replayHotkey = hotkeyManager.ReplayHotkey;
-            };
-
             InitializeUIControls();
 
             WindowAppearanceService.Configure(this);
@@ -154,8 +135,8 @@ namespace TrueReplayer
 
         private void InitializeUIControls()
         {
-            ToggleRecordingTextBox.Text = recordingHotkey;
-            ToggleReplayTextBox.Text = replayHotkey;
+            ToggleRecordingTextBox.Text = UserProfile.Current.RecordingHotkey;
+            ToggleReplayTextBox.Text = UserProfile.Current.ReplayHotkey;
 
             CustomDelayTextBox.Text = "100";
             UseCustomDelaySwitch.IsOn = true;
@@ -170,6 +151,8 @@ namespace TrueReplayer
             RecordKeyboardSwitch.IsOn = true;
 
             AlwaysOnTopSwitch_Toggled(null, null);
+
+            hotkeyManager = new HotkeyManager(ToggleRecordingTextBox, ToggleReplayTextBox);
 
             delayManager = new DelayManager(CustomDelayTextBox, Actions, ActionsDataGrid);
             CustomDelayTextBox.KeyDown += delayManager.HandleKeyDown;
@@ -209,11 +192,11 @@ namespace TrueReplayer
             {
                 DispatcherQueue.TryEnqueue(() =>
                 {
-                    if (key == recordingHotkey)
+                    if (key == UserProfile.Current.RecordingHotkey)
                     {
                         mainController.ToggleRecording();
                     }
-                    else if (key == replayHotkey)
+                    else if (key == UserProfile.Current.ReplayHotkey)
                     {
                         mainController.ToggleReplay(
                             EnableLoopSwitch.IsOn,
