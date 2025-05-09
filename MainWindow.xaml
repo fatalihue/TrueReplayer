@@ -158,7 +158,7 @@
                     <controls:DataGridTextColumn Header="X" Binding="{Binding X}" Width="65" />
                     <controls:DataGridTextColumn Header="Y" Binding="{Binding Y}" Width="65" />
                     <controls:DataGridTextColumn Header="Delay" Binding="{Binding Delay, Converter={StaticResource NonNegativeIntConverter}}" Width="Auto" />
-                    <controls:DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="105" />
+                    <controls:DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="Auto" />
                 </controls:DataGrid.Columns>
             </controls:DataGrid>
 
