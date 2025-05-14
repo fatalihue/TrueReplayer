@@ -96,7 +96,6 @@ namespace TrueReplayer.Managers
         #endregion
     }
 
-    // Structs usadas para WM_GETMINMAXINFO
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
     {

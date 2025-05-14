@@ -99,7 +99,8 @@ namespace TrueReplayer
                 Actions,
                 ReplayButton,
                 DispatcherQueue,
-                () => mainController.UpdateButtonStates()
+                () => mainController.UpdateButtonStates(),
+                ActionsDataGrid
             );
 
             mainController = new MainController(
@@ -194,7 +195,25 @@ namespace TrueReplayer
                 {
                     if (key == UserProfile.Current.RecordingHotkey)
                     {
-                        mainController.ToggleRecording();
+                        int index = ActionsDataGrid.SelectedIndex;
+
+                        foreach (var action in Actions)
+                        {
+                            action.IsInsertionPoint = false;
+                            action.IsVisuallyDeselected = false;
+                        }
+
+                        if (index >= 0 && index < Actions.Count)
+                        {
+                            Actions[index].IsInsertionPoint = true;
+                            mainController.EnableInsertMode(index);
+                        }
+                        else
+                        {
+                            mainController.EnableInsertMode(null);
+                        }
+
+                        uiInteractionHandler.HandleRecordingButtonClick();
                     }
                     else if (key == UserProfile.Current.ReplayHotkey)
                     {
@@ -216,9 +235,22 @@ namespace TrueReplayer
                 actionRecorder.RecordMouseAction(button, x, y, isDown, scrollDelta);
             };
 
-            InputHookManager.OnKeyEvent += (key, isDown) =>
+            InputHookManager.OnKeyEvent += async (key, isDown) =>
             {
                 System.Diagnostics.Debug.WriteLine($"KeyEvent: {key}, down={isDown}");
+
+                if (isDown && key == "Escape")
+                {
+                    mainController.CancelInsertMode();
+
+                    foreach (var action in Actions)
+                    {
+                        action.IsInsertionPoint = false;
+                        action.IsVisuallyDeselected = true;
+                    }
+
+                    return;
+                }
 
                 if (!mainController.IsRecording()) return;
 

@@ -25,6 +25,10 @@ namespace TrueReplayer.Controllers
         private DateTime lastActionTime;
         public Action? OnActionsUpdated;
 
+        private bool isInsertModeActive = false;
+
+        public bool IsInsertModeActive => isInsertModeActive;
+
         public MainController(
             ObservableCollection<ActionItem> actions,
             ActionRecorder recorder,
@@ -48,6 +52,26 @@ namespace TrueReplayer.Controllers
         }
 
         public bool IsRecording() => recordingService.IsRecording;
+
+        public void EnableInsertMode(int? index)
+        {
+            if (index.HasValue && index.Value == actions.Count - 1)
+            {
+                recorder.SetInsertIndex(index.Value + 1);
+            }
+            else
+            {
+                recorder.SetInsertIndex(index);
+            }
+
+            isInsertModeActive = index.HasValue;
+        }
+
+        public void CancelInsertMode()
+        {
+            recorder.SetInsertIndex(null);
+            isInsertModeActive = false;
+        }
 
         public void ToggleRecording()
         {
@@ -109,4 +133,4 @@ namespace TrueReplayer.Controllers
             lastActionTime = time;
         }
     }
-} 
+}

@@ -11,6 +11,7 @@
     <Grid Background="#2b2b2b">
         <Grid.Resources>
             <converters:NonNegativeIntConverter x:Key="NonNegativeIntConverter" />
+            <converters:InsertionHighlightConverter x:Key="InsertionHighlightConverter" />
         </Grid.Resources>
 
         <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Padding="5" RowSpacing="4" ColumnSpacing="2" RequestedTheme="Dark">
@@ -120,6 +121,7 @@
             </ListView>
 
             <controls:DataGrid x:ConnectionId='3' x:Name="ActionsDataGrid"
+                               SelectionMode="Extended"
                                Grid.Row="1" Grid.Column="1"
                                AutoGenerateColumns="False"
                                                                           
@@ -134,6 +136,14 @@
                                Foreground="White"
                                Margin="-8,0,0,0"
                                Background="#2b2b2b">
+
+                <controls:DataGrid.RowStyle>
+                    <Style TargetType="controls:DataGridRow">
+                        <Setter Property="Background"
+                Value="{Binding ShouldHighlight, Converter={StaticResource InsertionHighlightConverter}}" />
+                    </Style>
+                </controls:DataGrid.RowStyle>
+
                 <controls:DataGrid.Columns>
                     <controls:DataGridComboBoxColumn x:ConnectionId='25' Header="Action" Width="140" Binding="{Binding ActionType}"                                    />
                     <controls:DataGridTemplateColumn Header="Key" Width="90">
@@ -158,7 +168,7 @@
                     <controls:DataGridTextColumn Header="X" Binding="{Binding X}" Width="65" />
                     <controls:DataGridTextColumn Header="Y" Binding="{Binding Y}" Width="65" />
                     <controls:DataGridTextColumn Header="Delay" Binding="{Binding Delay, Converter={StaticResource NonNegativeIntConverter}}" Width="Auto" />
-                    <controls:DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="105" />
+                    <controls:DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="Auto" />
                 </controls:DataGrid.Columns>
             </controls:DataGrid>
 
@@ -225,12 +235,12 @@
 
             <!-- Action Buttons -->
             <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Left" Margin="-1,0,0,0" Spacing="0">
-                <Button x:ConnectionId='5' x:Name="RecordingButton" Content="Recording" Width="127" Margin="1"                               Padding="1,8" CornerRadius="0" />
-                <Button x:ConnectionId='6' x:Name="ReplayButton" Content="Replay" Width="140" Margin="1"                            Padding="1,8" CornerRadius="0" />
-                <Button x:ConnectionId='7' x:Name="ClearButton" Content="Clear" Width="88" Margin="1"                           Padding="1,8" CornerRadius="0" />
-                <Button x:ConnectionId='8' x:Name="CopyButton" Content="Copy" Width="63" Margin="1"                          Padding="1,8" CornerRadius="0" />
-                <Button x:ConnectionId='9' x:Name="SaveButton" Content="Save" Width="63" Margin="1"                          Padding="1,8" CornerRadius="0" />
-                <Button x:ConnectionId='10' x:Name="LoadButton" Content="Load" Width="74" Margin="1"                          Padding="1,8" CornerRadius="0" />
+                <Button x:ConnectionId='5' x:Name="RecordingButton" Content="Recording" Width="127" Margin="1"                               Padding="1,8" CornerRadius="8" />
+                <Button x:ConnectionId='6' x:Name="ReplayButton" Content="Replay" Width="80" Margin="1"                            Padding="1,8" CornerRadius="8" />
+                <Button x:ConnectionId='7' x:Name="ClearButton" Content="Clear" Width="80" Margin="1"                           Padding="1,8" CornerRadius="8" />
+                <Button x:ConnectionId='8' x:Name="CopyButton" Content="Copy" Width="80" Margin="1"                          Padding="1,8" CornerRadius="8" />
+                <Button x:ConnectionId='9' x:Name="SaveButton" Content="Save" Width="80" Margin="1"                          Padding="1,8" CornerRadius="8" />
+                <Button x:ConnectionId='10' x:Name="LoadButton" Content="Load" Width="80" Margin="1"                          Padding="1,8" CornerRadius="8" />
             </StackPanel>
 
             <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,-1,0" Spacing="0">

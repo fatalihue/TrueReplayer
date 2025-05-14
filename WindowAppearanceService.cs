@@ -15,7 +15,6 @@ namespace TrueReplayer.Services
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
             var appWindow = AppWindow.GetFromWindowId(windowId);
 
-            // Define tamanho inicial
             appWindow.Resize(new SizeInt32(850, 510));
 
             CustomizeTitleBar(appWindow);
@@ -57,7 +56,7 @@ namespace TrueReplayer.Services
             {
                 ShowWindow(hwnd, SW_RESTORE);
 
-                if (profile.WindowX >= 0 && profile.WindowY >= 0)
+                if (profile.WindowX != -1 && profile.WindowY != -1)
                 {
                     appWindow.Move(new PointInt32(profile.WindowX, profile.WindowY));
                 }

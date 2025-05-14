@@ -6,11 +6,13 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using TrueReplayer.Models;
+using CommunityToolkit.WinUI.UI.Controls;
 
 namespace TrueReplayer.Services
 {
     public class ReplayService
     {
+        private readonly DataGrid actionsGrid;
         private readonly ObservableCollection<ActionItem> actions;
         private readonly ActionReplayer replayer;
         private readonly Button replayButton;
@@ -23,14 +25,26 @@ namespace TrueReplayer.Services
             ObservableCollection<ActionItem> actions,
             Button replayButton,
             DispatcherQueue dispatcherQueue,
-            Action updateButtonStates)
+            Action updateButtonStates,
+            DataGrid actionsGrid)
         {
             this.actions = actions;
-            this.replayer = new ActionReplayer(actions);
+            this.replayer = new ActionReplayer(actions, dispatcherQueue);
             this.replayButton = replayButton;
             this.dispatcherQueue = dispatcherQueue;
             this.updateButtonStates = updateButtonStates;
+            this.actionsGrid = actionsGrid;
+
+            replayer.OnActionExecuting += (action) =>
+            {
+                dispatcherQueue.TryEnqueue(() =>
+                {
+                    actionsGrid.SelectedItem = action;
+                    actionsGrid.ScrollIntoView(action, null);
+                });
+            };
         }
+
 
         public void ToggleReplay(bool loopEnabled, string loopCountText, bool intervalEnabled, string intervalText)
         {

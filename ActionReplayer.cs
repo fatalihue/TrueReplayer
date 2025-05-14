@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.UI.Dispatching;
 using TrueReplayer.Interop;
 using TrueReplayer.Models;
 
@@ -11,13 +12,17 @@ namespace TrueReplayer.Services
     public class ActionReplayer
     {
         private readonly ObservableCollection<ActionItem> _actions;
+        private readonly DispatcherQueue dispatcherQueue;
         private CancellationTokenSource? _cts;
         private int _loopCount = 0;
         private int _loopInterval = 0;
 
-        public ActionReplayer(ObservableCollection<ActionItem> actions)
+        public event Action<ActionItem>? OnActionExecuting;
+
+        public ActionReplayer(ObservableCollection<ActionItem> actions, DispatcherQueue dispatcherQueue)
         {
             _actions = actions;
+            this.dispatcherQueue = dispatcherQueue;
         }
 
         public void SetLoopOptions(int loopCount, int loopInterval)
@@ -30,6 +35,7 @@ namespace TrueReplayer.Services
         public async Task StartAsync()
         {
             _cts = new CancellationTokenSource();
+
             try
             {
                 int iteration = 0;
@@ -39,6 +45,7 @@ namespace TrueReplayer.Services
                 {
                     iteration++;
                     System.Diagnostics.Debug.WriteLine($"Iniciando loop {iteration} de {(isInfinite ? "infinito" : _loopCount.ToString())}");
+
                     foreach (var action in _actions)
                     {
                         if (_cts.IsCancellationRequested) break;
@@ -46,38 +53,23 @@ namespace TrueReplayer.Services
                         int safeDelay = Math.Max(0, action.Delay);
                         await Task.Delay(safeDelay, _cts.Token);
 
+                        dispatcherQueue.TryEnqueue(() =>
+                        {
+                            OnActionExecuting?.Invoke(action);
+                        });
+
                         switch (action.ActionType)
                         {
-                            case "KeyDown":
-                                SimulateKey(action.Key, isDown: true);
-                                break;
-                            case "KeyUp":
-                                SimulateKey(action.Key, isDown: false);
-                                break;
-                            case "LeftClickDown":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_LEFTDOWN);
-                                break;
-                            case "LeftClickUp":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_LEFTUP);
-                                break;
-                            case "RightClickDown":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_RIGHTDOWN);
-                                break;
-                            case "RightClickUp":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_RIGHTUP);
-                                break;
-                            case "MiddleClickDown":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_MIDDLEDOWN);
-                                break;
-                            case "MiddleClickUp":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_MIDDLEUP);
-                                break;
-                            case "ScrollUp":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_WHEEL, 120);
-                                break;
-                            case "ScrollDown":
-                                SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_WHEEL, -120);
-                                break;
+                            case "KeyDown": SimulateKey(action.Key, true); break;
+                            case "KeyUp": SimulateKey(action.Key, false); break;
+                            case "LeftClickDown": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_LEFTDOWN); break;
+                            case "LeftClickUp": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_LEFTUP); break;
+                            case "RightClickDown": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_RIGHTDOWN); break;
+                            case "RightClickUp": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_RIGHTUP); break;
+                            case "MiddleClickDown": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_MIDDLEDOWN); break;
+                            case "MiddleClickUp": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_MIDDLEUP); break;
+                            case "ScrollUp": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_WHEEL, 120); break;
+                            case "ScrollDown": SimulateMouse(action.X, action.Y, NativeMethods.MOUSEEVENTF_WHEEL, -120); break;
                         }
                     }
 

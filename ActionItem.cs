@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace TrueReplayer.Models
 {
-    public class ActionItem
+    public class ActionItem : INotifyPropertyChanged
     {
         public string ActionType { get; set; }
         public string Key { get; set; }
@@ -11,6 +12,32 @@ namespace TrueReplayer.Models
         public int Y { get; set; }
         public int Delay { get; set; }
         public string Comment { get; set; }
+
+        private bool _isInsertionPoint;
+        public bool IsInsertionPoint
+        {
+            get => _isInsertionPoint;
+            set
+            {
+                _isInsertionPoint = value;
+                OnPropertyChanged(nameof(IsInsertionPoint));
+                OnPropertyChanged(nameof(ShouldHighlight));
+            }
+        }
+
+        private bool _isVisuallyDeselected;
+        public bool IsVisuallyDeselected
+        {
+            get => _isVisuallyDeselected;
+            set
+            {
+                _isVisuallyDeselected = value;
+                OnPropertyChanged(nameof(IsVisuallyDeselected));
+                OnPropertyChanged(nameof(ShouldHighlight));
+            }
+        }
+
+        public bool ShouldHighlight => IsInsertionPoint && !IsVisuallyDeselected;
 
         public string DisplayKey
         {
@@ -39,5 +66,9 @@ namespace TrueReplayer.Models
                 return map.TryGetValue(Key, out var readable) ? readable : Key;
             }
         }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
