@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿// ProfileModels.cs
+using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
 namespace TrueReplayer.Models
@@ -18,8 +19,13 @@ namespace TrueReplayer.Models
         public int LoopCount { get; set; } = 0;
         public bool LoopIntervalEnabled { get; set; } = false;
         public int LoopInterval { get; set; } = 1000;
+
+        [JsonIgnore]
         public bool AlwaysOnTop { get; set; } = false;
+
+        [JsonIgnore]
         public bool MinimizeToTray { get; set; } = false;
+
         public int WindowX { get; set; } = -1;
         public int WindowY { get; set; } = -1;
         public int WindowWidth { get; set; } = 885;

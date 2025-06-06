@@ -104,8 +104,6 @@ namespace TrueReplayer.Managers
                 LoopCount = int.TryParse(window.LoopCountTextBox.Text, out var c) ? c : 0,
                 LoopIntervalEnabled = window.LoopIntervalSwitch.IsOn,
                 LoopInterval = int.TryParse(window.LoopIntervalTextBox.Text, out var i) ? i : 1000,
-                AlwaysOnTop = window.AlwaysOnTopSwitch.IsOn,
-                MinimizeToTray = window.MinimizeToTraySwitch.IsOn,
                 ProfileKeyEnabled = window.ProfileKeySwitch.IsOn,
                 CustomHotkey = UserProfile.Current.CustomHotkey
             };
@@ -131,9 +129,6 @@ namespace TrueReplayer.Managers
             window.LoopCountTextBox.Text = profile.LoopCount.ToString();
             window.LoopIntervalSwitch.IsOn = profile.LoopIntervalEnabled;
             window.LoopIntervalTextBox.Text = profile.LoopInterval.ToString();
-            window.AlwaysOnTopSwitch.IsOn = profile.AlwaysOnTop;
-            window.MinimizeToTraySwitch.IsOn = profile.MinimizeToTray;
-            window.ProfileKeySwitch.IsOn = profile.ProfileKeyEnabled;
 
             InputHookManager.UpdateHotkeys(profile.RecordingHotkey, profile.ReplayHotkey);
 
