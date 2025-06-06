@@ -156,48 +156,11 @@ namespace TrueReplayer.Services
             var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
             var appWindow = AppWindow.GetFromWindowId(windowId);
             SetWindowPos(hwnd, profile.AlwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
-
-            if (profile.IsMaximized)
-            {
-                ShowWindow(hwnd, SW_MAXIMIZE);
-            }
-            else
-            {
-                ShowWindow(hwnd, SW_RESTORE);
-                if (profile.WindowX != -1 && profile.WindowY != -1)
-                    appWindow.Move(new Windows.Graphics.PointInt32(profile.WindowX, profile.WindowY));
-                else
-                    CenterWindow(appWindow, windowId);
-
-                appWindow.Resize(new Windows.Graphics.SizeInt32(
-                    profile.WindowWidth > 0 ? profile.WindowWidth : 885,
-                    profile.WindowHeight > 0 ? profile.WindowHeight : 510
-                ));
-            }
         }
 
         public static void CaptureWindowState(Window window, UserProfile profile)
         {
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            var windowId = Win32Interop.GetWindowIdFromWindow(hwnd);
-            var appWindow = AppWindow.GetFromWindowId(windowId);
-            var placement = GetWindowPlacement(hwnd);
-            profile.IsMaximized = placement.showCmd == SW_MAXIMIZE;
-
-            if (!profile.IsMaximized)
-            {
-                profile.WindowX = appWindow.Position.X;
-                profile.WindowY = appWindow.Position.Y;
-                profile.WindowWidth = appWindow.Size.Width;
-                profile.WindowHeight = appWindow.Size.Height;
-            }
-            else
-            {
-                profile.WindowX = placement.rcNormalPosition.X;
-                profile.WindowY = placement.rcNormalPosition.Y;
-                profile.WindowWidth = placement.rcNormalPosition.Width;
-                profile.WindowHeight = placement.rcNormalPosition.Height;
-            }
+            // Método mantido vazio, pois a posição da janela não é mais salva
         }
 
         private const int SW_MAXIMIZE = 3;

@@ -108,7 +108,6 @@ namespace TrueReplayer.Managers
                 CustomHotkey = UserProfile.Current.CustomHotkey
             };
 
-            window.CaptureWindowState(profile);
             return profile;
         }
 

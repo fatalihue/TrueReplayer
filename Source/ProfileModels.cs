@@ -1,5 +1,4 @@
-﻿// ProfileModels.cs
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Text.Json.Serialization;
 
 namespace TrueReplayer.Models
@@ -26,13 +25,24 @@ namespace TrueReplayer.Models
         [JsonIgnore]
         public bool MinimizeToTray { get; set; } = false;
 
+        [JsonIgnore]
         public int WindowX { get; set; } = -1;
+
+        [JsonIgnore]
         public int WindowY { get; set; } = -1;
+
+        [JsonIgnore]
         public int WindowWidth { get; set; } = 885;
+
+        [JsonIgnore]
         public int WindowHeight { get; set; } = 510;
+
         public string BatchDelay { get; set; } = "Delay (ms)";
         public string? LastProfileDirectory { get; set; }
+
+        [JsonIgnore]
         public bool IsMaximized { get; set; }
+
         public string? CustomHotkey { get; set; }
 
         [JsonIgnore]

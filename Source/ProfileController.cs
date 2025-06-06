@@ -56,7 +56,6 @@ namespace TrueReplayer.Controllers
             {
                 var profile = UISettingsManager.CreateFromUI(window);
                 profile.LastProfileDirectory = Path.GetDirectoryName(dialog.FileName)!;
-                CaptureWindowState(profile);
 
                 try
                 {
@@ -95,7 +94,6 @@ namespace TrueReplayer.Controllers
                 {
                     UserProfile.Current = profile;
                     UISettingsManager.ApplyToUI(window, profile);
-                    WindowAppearanceService.ApplyWindowState(window, profile);
                     UserProfile.Current.LastProfileDirectory = Path.GetDirectoryName(path)!;
                 }
             }
@@ -146,13 +144,12 @@ namespace TrueReplayer.Controllers
             UserProfile.Current = UserProfile.Default;
             UISettingsManager.ApplyToUI(window, UserProfile.Default);
             WindowAppearanceService.Configure(window);
-
             UpdateProfileColors(null);
         }
 
         public void CaptureWindowState(UserProfile profile)
         {
-            WindowAppearanceService.CaptureWindowState(window, profile);
+            // Método mantido vazio, pois a posição da janela não é mais salva
         }
 
         #endregion
@@ -258,7 +255,7 @@ namespace TrueReplayer.Controllers
             catch (TaskCanceledException) { }
         }
 
-        #endregion
+        #endregion // Profile List Management
 
         #region Profile UI Interactions
 
@@ -274,8 +271,6 @@ namespace TrueReplayer.Controllers
                 {
                     UserProfile.Current = profile;
                     UISettingsManager.ApplyToUI(window, profile);
-                    WindowAppearanceService.ApplyWindowState(window, profile);
-
                     selectedProfileName = selectedProfile;
                     UpdateProfileColors(selectedProfileName);
                 }
