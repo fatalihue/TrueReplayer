@@ -224,10 +224,10 @@
             <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Left" Margin="-1,0,0,0" Spacing="0">
                 <Button x:Name="RecordingButton" Content="Recording" Width="156" Margin="1" Click="RecordingButton_Click" Padding="1,8" CornerRadius="5" />
                 <Button x:Name="ReplayButton" Content="Replay" Width="90" Margin="1" Click="ReplayButton_Click" Padding="1,8" CornerRadius="5" />
-                <Button x:Name="ClearButton" Content="Clear" Width="90" Margin="1" Click="ClearButton_Click" Padding="1,8" CornerRadius="5" />
-                <Button x:Name="CopyButton" Content="Copy" Width="90" Margin="1" Click="CopyButton_Click" Padding="1,8" CornerRadius="5" />
                 <Button x:Name="SaveButton" Content="Save" Width="90" Margin="1" Click="SaveButton_Click" Padding="1,8" CornerRadius="5" />
                 <Button x:Name="LoadButton" Content="Load" Width="90" Margin="1" Click="LoadButton_Click" Padding="1,8" CornerRadius="5" />
+                <Button x:Name="CopyButton" Content="Copy" Width="90" Margin="1" Click="CopyButton_Click" Padding="1,8" CornerRadius="5" />
+                <Button x:Name="ClearButton" Content="Clear" Width="90" Margin="1" Click="ClearButton_Click" Padding="1,8" CornerRadius="5" />
             </StackPanel>
 
             <!-- Botão de redefinição -->
