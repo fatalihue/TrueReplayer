@@ -40,8 +40,8 @@ namespace TrueReplayer.Controllers
 
         public async Task SaveProfileAsync()
         {
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string profileDir = Path.Combine(documentsPath, "TrueReplayerProfiles");
+            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+            string profileDir = Path.Combine(appFolder, "Profiles");
 
             Directory.CreateDirectory(profileDir);
 
@@ -76,13 +76,13 @@ namespace TrueReplayer.Controllers
 
         public async Task LoadProfileAsync()
         {
-            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string profileDir = Path.Combine(documentsPath, "TrueReplayerProfiles");
+            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+            string profileDir = Path.Combine(appFolder, "Profiles");
 
             var dialog = new WinForms.OpenFileDialog
             {
                 Filter = "JSON file (*.json)|*.json",
-                InitialDirectory = Directory.Exists(profileDir) ? profileDir : documentsPath
+                InitialDirectory = Directory.Exists(profileDir) ? profileDir : appFolder
             };
 
             if (dialog.ShowDialog() == WinForms.DialogResult.OK)
@@ -158,7 +158,9 @@ namespace TrueReplayer.Controllers
 
         private async void LoadProfileList()
         {
-            string profileDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TrueReplayerProfiles");
+            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+            string profileDir = Path.Combine(appFolder, "Profiles");  // Alterado para "Profiles"
+
             Directory.CreateDirectory(profileDir);
 
             var files = Directory.GetFiles(profileDir, "*.json").ToList();
@@ -212,7 +214,8 @@ namespace TrueReplayer.Controllers
 
         private void SetupProfileWatcher()
         {
-            string profileDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TrueReplayerProfiles");
+            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+            string profileDir = Path.Combine(appFolder, "Profiles");
 
             if (!Directory.Exists(profileDir))
                 Directory.CreateDirectory(profileDir);

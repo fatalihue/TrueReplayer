@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
@@ -11,16 +12,17 @@ namespace TrueReplayer.Services
     {
         private static string GetDefaultProfilePath()
         {
-            string documentsPath = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-            string appFolder = Path.Combine(documentsPath, "TrueReplayer");
-            Directory.CreateDirectory(appFolder);
-            return Path.Combine(appFolder, "profile.json");
+            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+            string profileDir = Path.Combine(appFolder, "Profiles");  // Alterado para "Profiles"
+
+            Directory.CreateDirectory(profileDir);  // Cria a pasta de perfis, se não existir
+            return Path.Combine(profileDir, "profile.json");  // Caminho completo para o perfil padrão
         }
 
         public static async Task SaveProfileAsync(string? filePath, UserProfile profile)
         {
             if (string.IsNullOrWhiteSpace(filePath))
-                filePath = GetDefaultProfilePath();
+                filePath = GetDefaultProfilePath();  // Usa o caminho padrão, se não for especificado
 
             var options = new JsonSerializerOptions
             {
@@ -29,23 +31,23 @@ namespace TrueReplayer.Services
             };
 
             var json = JsonSerializer.Serialize(profile, options);
-            await File.WriteAllTextAsync(filePath, json);
+            await File.WriteAllTextAsync(filePath, json);  // Salva o perfil no arquivo
         }
 
         public static async Task<UserProfile?> LoadProfileAsync(string? filePath = null)
         {
             if (string.IsNullOrWhiteSpace(filePath))
-                filePath = GetDefaultProfilePath();
+                filePath = GetDefaultProfilePath();  // Usa o caminho padrão, se não for especificado
 
-            if (!File.Exists(filePath)) return null;
+            if (!File.Exists(filePath)) return null;  // Verifica se o arquivo existe
 
             var options = new JsonSerializerOptions
             {
                 TypeInfoResolver = new DefaultJsonTypeInfoResolver()
             };
 
-            var json = await File.ReadAllTextAsync(filePath);
-            return JsonSerializer.Deserialize<UserProfile>(json, options);
+            var json = await File.ReadAllTextAsync(filePath);  // Lê o arquivo de perfil
+            return JsonSerializer.Deserialize<UserProfile>(json, options);  // Deserializa o perfil
         }
     }
 }

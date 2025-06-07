@@ -66,7 +66,7 @@ namespace TrueReplayer
 
             TrayIconService.Initialize(this, hwnd);
 
-            string iconPath = Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico");
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico");  // Caminho alterado
             IntPtr hIcon = LoadImage(IntPtr.Zero, iconPath, 1, 0, 0, 0x00000010);
             const int WM_SETICON = 0x80;
             SendMessage(hwnd, WM_SETICON, (IntPtr)1, hIcon);
@@ -432,7 +432,8 @@ namespace TrueReplayer
                 string name = inputTextBox.Text.Trim();
                 if (string.IsNullOrWhiteSpace(name)) return;
 
-                string profileDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TrueReplayerProfiles");
+                string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+                string profileDir = Path.Combine(appFolder, "Profiles");
                 Directory.CreateDirectory(profileDir);
 
                 if (!name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
