@@ -12,6 +12,7 @@ using TrueReplayer.Models;
 using TrueReplayer.Services;
 using Windows.System;
 using Windows.UI.Core;
+using TrueReplayer.Interop; // Added namespace
 
 namespace TrueReplayer.Managers
 {
@@ -26,6 +27,35 @@ namespace TrueReplayer.Managers
             this.actions = actions;
             this.mainController = mainController;
             this.actionsDataGrid = actionsDataGrid;
+        }
+
+        public void HandleKeyEditTextBoxPreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (sender is not TextBox textBox) return;
+            if (actionsDataGrid.SelectedItem is not ActionItem item) return;
+
+            e.Handled = true;
+
+            // Use NativeMethods to check key states
+            bool ctrl = (NativeMethods.GetAsyncKeyState(0x11) & 0x8000) != 0; // VK_CONTROL
+            bool alt = (NativeMethods.GetAsyncKeyState(0x12) & 0x8000) != 0;  // VK_MENU (Alt)
+            bool shift = (NativeMethods.GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
+
+            string? mainKey = KeyUtils.NormalizeKeyName((int)e.Key) ?? e.Key.ToString();
+
+            var parts = new List<string>();
+            if (ctrl) parts.Add("Ctrl");
+            if (alt) parts.Add("Alt");
+            if (shift) parts.Add("Shift");
+            if (!string.IsNullOrEmpty(mainKey) && !parts.Contains(mainKey))
+                parts.Add(mainKey);
+
+            string newKey = string.Join("+", parts);
+
+            item.Key = newKey;
+            var selectedIndex = actionsDataGrid.SelectedIndex;
+            actionsDataGrid.SelectedItem = null;
+            actionsDataGrid.SelectedIndex = selectedIndex;
         }
 
         public void HandleRecordingButtonClick()
@@ -54,35 +84,6 @@ namespace TrueReplayer.Managers
         {
             if (sender is TextBox textBox)
                 textBox.SelectAll();
-        }
-
-        public void HandleKeyEditTextBoxPreviewKeyDown(object sender, KeyRoutedEventArgs e)
-        {
-            if (sender is not TextBox textBox) return;
-            if (actionsDataGrid.SelectedItem is not ActionItem item) return;
-
-            e.Handled = true;
-
-            var coreWindow = Window.Current.CoreWindow;
-            bool ctrl = (coreWindow.GetKeyState(VirtualKey.Control) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-            bool alt = (coreWindow.GetKeyState(VirtualKey.Menu) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-            bool shift = (coreWindow.GetKeyState(VirtualKey.Shift) & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
-
-            string? mainKey = KeyUtils.NormalizeKeyName((int)e.Key) ?? e.Key.ToString();
-
-            var parts = new List<string>();
-            if (ctrl) parts.Add("Ctrl");
-            if (alt) parts.Add("Alt");
-            if (shift) parts.Add("Shift");
-            if (!string.IsNullOrEmpty(mainKey) && !parts.Contains(mainKey))
-                parts.Add(mainKey);
-
-            string newKey = string.Join("+", parts);
-
-            item.Key = newKey;
-            var selectedIndex = actionsDataGrid.SelectedIndex;
-            actionsDataGrid.SelectedItem = null;
-            actionsDataGrid.SelectedIndex = selectedIndex;
         }
     }
 
