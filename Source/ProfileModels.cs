@@ -9,7 +9,7 @@ namespace TrueReplayer.Models
         public ObservableCollection<ActionItem> Actions { get; set; } = new();
         public string RecordingHotkey { get; set; } = "F9";
         public string ReplayHotkey { get; set; } = "F10";
-        public string ProfileKeyToggleHotkey { get; set; } = "F12"; // Nova hotkey
+        public string ProfileKeyToggleHotkey { get; set; } = "Ctrl+Shift+K";
         public bool RecordMouse { get; set; } = true;
         public bool RecordScroll { get; set; } = true;
         public bool RecordKeyboard { get; set; } = true;
@@ -53,7 +53,7 @@ namespace TrueReplayer.Models
         {
             RecordingHotkey = "F9",
             ReplayHotkey = "F10",
-            ProfileKeyToggleHotkey = "F12", // Nova hotkey padrão
+            ProfileKeyToggleHotkey = "Ctrl+Shift+K",
             RecordMouse = true,
             RecordScroll = true,
             RecordKeyboard = true,

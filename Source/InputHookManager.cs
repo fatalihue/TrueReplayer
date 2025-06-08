@@ -92,14 +92,6 @@ namespace TrueReplayer
 
         private static string BuildComposedKey(int vkCode)
         {
-            if (vkCode == 0x10 || vkCode == 0x11 || vkCode == 0x12 || // Shift, Ctrl, Alt
-                vkCode == 0xA0 || vkCode == 0xA1 || // LeftShift, RightShift
-                vkCode == 0xA2 || vkCode == 0xA3 || // LeftCtrl, RightCtrl
-                vkCode == 0xA4 || vkCode == 0xA5)   // LeftAlt, RightAlt
-            {
-                return string.Empty;
-            }
-
             bool ctrlPressed = (NativeMethods.GetAsyncKeyState(0x11) & 0x8000) != 0; // VK_CONTROL
             bool altPressed = (NativeMethods.GetAsyncKeyState(0x12) & 0x8000) != 0;  // VK_MENU (Alt)
             bool shiftPressed = (NativeMethods.GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT

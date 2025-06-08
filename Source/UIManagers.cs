@@ -8,11 +8,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using TrueReplayer.Controllers;
 using TrueReplayer.Helpers;
+using TrueReplayer.Interop;
 using TrueReplayer.Models;
 using TrueReplayer.Services;
 using Windows.System;
 using Windows.UI.Core;
-using TrueReplayer.Interop;
 
 namespace TrueReplayer.Managers
 {
@@ -95,7 +95,7 @@ namespace TrueReplayer.Managers
                 Actions = window.Actions,
                 RecordingHotkey = window.ToggleRecordingTextBox.Text,
                 ReplayHotkey = window.ToggleReplayTextBox.Text,
-                ProfileKeyToggleHotkey = window.ToggleProfileKeyTextBox.Text, // Nova propriedade
+                ProfileKeyToggleHotkey = window.ToggleProfileKeyTextBox.Text,
                 RecordMouse = window.RecordMouseSwitch.IsOn,
                 RecordScroll = window.RecordScrollSwitch.IsOn,
                 RecordKeyboard = window.RecordKeyboardSwitch.IsOn,
@@ -120,7 +120,7 @@ namespace TrueReplayer.Managers
 
             window.ToggleRecordingTextBox.Text = profile.RecordingHotkey;
             window.ToggleReplayTextBox.Text = profile.ReplayHotkey;
-            window.ToggleProfileKeyTextBox.Text = profile.ProfileKeyToggleHotkey; // Aplica nova hotkey
+            window.ToggleProfileKeyTextBox.Text = profile.ProfileKeyToggleHotkey;
             window.RecordMouseSwitch.IsOn = profile.RecordMouse;
             window.RecordScrollSwitch.IsOn = profile.RecordScroll;
             window.RecordKeyboardSwitch.IsOn = profile.RecordKeyboard;
@@ -143,11 +143,11 @@ namespace TrueReplayer.Managers
     {
         private readonly TextBox recordingTextBox;
         private readonly TextBox replayTextBox;
-        private readonly TextBox profileKeyToggleTextBox; // Novo TextBox
+        private readonly TextBox profileKeyToggleTextBox;
 
         public string RecordingHotkey => UserProfile.Current.RecordingHotkey;
         public string ReplayHotkey => UserProfile.Current.ReplayHotkey;
-        public string ProfileKeyToggleHotkey => UserProfile.Current.ProfileKeyToggleHotkey; // Nova propriedade
+        public string ProfileKeyToggleHotkey => UserProfile.Current.ProfileKeyToggleHotkey;
 
         public event Action<string>? OnHotkeyChanged;
 
@@ -192,7 +192,7 @@ namespace TrueReplayer.Managers
             string? mainKey = KeyUtils.NormalizeKeyName(vkCode) ?? e.Key.ToString();
             if (string.IsNullOrEmpty(mainKey)) return;
 
-            var keyParts = new List<string>(); // Renomeado para evitar conflito
+            var keyParts = new List<string>();
             if (ctrl) keyParts.Add("Ctrl");
             if (alt) keyParts.Add("Alt");
             if (shift) keyParts.Add("Shift");
@@ -200,6 +200,15 @@ namespace TrueReplayer.Managers
                 keyParts.Add(mainKey);
 
             string newKey = string.Join("+", keyParts);
+
+            // Verifica se a hotkey é válida (não apenas modificadores)
+            if (keyParts.Count == 0 || (keyParts.Count == 1 && (keyParts[0] == "Ctrl" || keyParts[0] == "Alt" || keyParts[0] == "Shift")))
+            {
+                System.Diagnostics.Debug.WriteLine("Hotkey inválida: apenas modificadores não são permitidos.");
+                return;
+            }
+
+            string newHotkey = string.Join("+", keyParts);
 
             // Verifica se a hotkey já está em uso
             var profileHotkeys = InputHookManager.ProfileHotkeys.Values;
@@ -211,30 +220,30 @@ namespace TrueReplayer.Managers
             else if (textBox == profileKeyToggleTextBox)
                 existingHotkeys.Remove(ProfileKeyToggleHotkey);
 
-            if (profileHotkeys.Contains(newKey, StringComparer.OrdinalIgnoreCase) ||
-                existingHotkeys.Contains(newKey))
+            if (profileHotkeys.Contains(newHotkey, StringComparer.OrdinalIgnoreCase) ||
+                existingHotkeys.Contains(newHotkey))
             {
-                System.Diagnostics.Debug.WriteLine($"Hotkey '{newKey}' já está em uso.");
+                System.Diagnostics.Debug.WriteLine($"Hotkey '{newHotkey}' já está em uso.");
                 return;
             }
 
             if (textBox == recordingTextBox)
-                UserProfile.Current.RecordingHotkey = newKey;
+                UserProfile.Current.RecordingHotkey = newHotkey;
             else if (textBox == replayTextBox)
-                UserProfile.Current.ReplayHotkey = newKey;
+                UserProfile.Current.ReplayHotkey = newHotkey;
             else if (textBox == profileKeyToggleTextBox)
-                UserProfile.Current.ProfileKeyToggleHotkey = newKey;
+                UserProfile.Current.ProfileKeyToggleHotkey = newHotkey;
             else return;
 
-            textBox.Text = newKey;
-            textBox.SelectionStart = newKey.Length;
+            textBox.Text = newHotkey;
+            textBox.SelectionStart = newHotkey.Length;
 
             InputHookManager.UpdateHotkeys(
                 UserProfile.Current.RecordingHotkey,
                 UserProfile.Current.ReplayHotkey,
                 UserProfile.Current.ProfileKeyToggleHotkey);
 
-            OnHotkeyChanged?.Invoke(newKey);
+            OnHotkeyChanged?.Invoke(newHotkey);
         }
     }
 

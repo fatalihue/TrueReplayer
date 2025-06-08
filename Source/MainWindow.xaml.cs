@@ -533,7 +533,6 @@ namespace TrueReplayer
 
                     string? mainKey = KeyUtils.NormalizeKeyName(vkCode) ?? args.Key.ToString();
 
-                    parts.Clear();
                     if (ctrl) parts.Add("Ctrl");
                     if (alt) parts.Add("Alt");
                     if (shift) parts.Add("Shift");
@@ -545,6 +544,15 @@ namespace TrueReplayer
                     if (string.IsNullOrEmpty(newHotkey) || parts.Count == 0 || (parts.Count == 1 && (parts[0] == "Ctrl" || parts[0] == "Alt" || parts[0] == "Shift")))
                     {
                         System.Diagnostics.Debug.WriteLine("Hotkey inválida ou apenas modificador.");
+                        return;
+                    }
+
+                    // Verifica se a hotkey já está em uso
+                    var profileHotkeys = InputHookManager.ProfileHotkeys.Values;
+                    var existingHotkeys = new List<string> { UserProfile.Current.RecordingHotkey, UserProfile.Current.ReplayHotkey, UserProfile.Current.ProfileKeyToggleHotkey };
+                    if (profileHotkeys.Contains(newHotkey, StringComparer.OrdinalIgnoreCase) || existingHotkeys.Contains(newHotkey))
+                    {
+                        WinForms.MessageBox.Show($"Hotkey '{newHotkey}' is already in use.", "Error", WinForms.MessageBoxButtons.OK, WinForms.MessageBoxIcon.Warning);
                         return;
                     }
 
