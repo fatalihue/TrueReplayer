@@ -106,11 +106,15 @@ namespace TrueReplayer.Managers
                 LoopIntervalEnabled = window.LoopIntervalSwitch.IsOn,
                 LoopInterval = int.TryParse(window.LoopIntervalTextBox.Text, out var i) ? i : 1000,
                 ProfileKeyEnabled = window.ProfileKeySwitch.IsOn,
-                CustomHotkey = UserProfile.Current.CustomHotkey
+                CustomHotkey = UserProfile.Current.CustomHotkey,
+
+                AlwaysOnTop = window.AlwaysOnTopSwitch.IsOn,
+                MinimizeToTray = window.MinimizeToTraySwitch.IsOn
             };
 
             return profile;
         }
+
 
         public static void ApplyToUI(MainWindow window, UserProfile profile)
         {
@@ -132,11 +136,16 @@ namespace TrueReplayer.Managers
             window.LoopIntervalTextBox.Text = profile.LoopInterval.ToString();
             window.ProfileKeySwitch.IsOn = profile.ProfileKeyEnabled;
 
-            InputHookManager.UpdateHotkeys(profile.RecordingHotkey, profile.ReplayHotkey, profile.ProfileKeyToggleHotkey);
-
             window.AlwaysOnTopSwitch_Toggled(null, null);
+
+            InputHookManager.UpdateHotkeys(
+                profile.RecordingHotkey,
+                profile.ReplayHotkey,
+                profile.ProfileKeyToggleHotkey);
+
             window.UpdateButtonStates();
         }
+
     }
 
     public class HotkeyManager

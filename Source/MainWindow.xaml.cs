@@ -59,6 +59,10 @@ namespace TrueReplayer
             this.InitializeComponent();
             this.Title = "TrueReplayer";
 
+            var appSettings = AppSettingsManager.Load();
+            AlwaysOnTopSwitch.IsOn = appSettings.AlwaysOnTop;
+            MinimizeToTraySwitch.IsOn = appSettings.MinimizeToTray;
+
             hwnd = WindowNative.GetWindowHandle(this);
 
             windowEventManager = new WindowEventManager(this);
@@ -149,6 +153,13 @@ namespace TrueReplayer
             {
                 profileController.RefreshProfileList(true);
 
+                var defaultProfile = await SettingsManager.LoadProfileAsync();
+                if (defaultProfile != null)
+                {
+                    UserProfile.Current = defaultProfile;
+                    UISettingsManager.ApplyToUI(this, defaultProfile);
+                }
+
                 var hotkeys = await profileController.GetProfileHotkeys();
                 InputHookManager.RegisterProfileHotkeys(hotkeys);
             });
@@ -178,6 +189,7 @@ namespace TrueReplayer
             RecordKeyboardSwitch.IsOn = true;
 
             AlwaysOnTopSwitch_Toggled(null, null);
+            MinimizeToTraySwitch.Toggled += MinimizeToTraySwitch_Toggled;
 
             hotkeyManager = new HotkeyManager(ToggleRecordingTextBox, ToggleReplayTextBox, ToggleProfileKeyTextBox);
 
@@ -227,7 +239,8 @@ namespace TrueReplayer
                         return;
                     }
 
-                    if (key.StartsWith("PROFILE::") && (!ProfileKeySwitch.IsOn || mainController.IsRecording()))
+                    if (key.StartsWith("PROFILE::") &&
+                        (!ProfileKeySwitch.IsOn || mainController.IsRecording() || mainController.IsReplayInProgress()))
                     {
                         return;
                     }
@@ -321,7 +334,28 @@ namespace TrueReplayer
 
         public void AlwaysOnTopSwitch_Toggled(object sender, RoutedEventArgs e)
         {
-            windowEventManager.UpdateAlwaysOnTop(AlwaysOnTopSwitch.IsOn);
+            if (AlwaysOnTopSwitch == null)
+                return;
+
+            UserProfile.Current.AlwaysOnTop = AlwaysOnTopSwitch.IsOn;
+            windowEventManager?.UpdateAlwaysOnTop(AlwaysOnTopSwitch.IsOn);
+
+            // Salvar estado persistente
+            var settings = AppSettingsManager.Load();
+            settings.AlwaysOnTop = AlwaysOnTopSwitch.IsOn;
+            AppSettingsManager.Save(settings);
+        }
+
+        public void MinimizeToTraySwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (MinimizeToTraySwitch == null)
+                return;
+
+            UserProfile.Current.MinimizeToTray = MinimizeToTraySwitch.IsOn;
+
+            var settings = AppSettingsManager.Load();
+            settings.MinimizeToTray = MinimizeToTraySwitch.IsOn;
+            AppSettingsManager.Save(settings);
         }
 
         private void RecordingButton_Click(object sender, RoutedEventArgs e)
@@ -371,7 +405,13 @@ namespace TrueReplayer
 
         private void ResetButton_Click(object sender, RoutedEventArgs e)
         {
+            bool keepAlwaysOnTop = AlwaysOnTopSwitch.IsOn;
+            bool keepMinimizeToTray = MinimizeToTraySwitch.IsOn;
+
             profileController.ResetProfile();
+            UserProfile.Current.AlwaysOnTop = keepAlwaysOnTop;
+            UserProfile.Current.MinimizeToTray = keepMinimizeToTray;
+
             UISettingsManager.ApplyToUI(this, UserProfile.Current);
             profileController.UpdateProfileColors(null);
         }

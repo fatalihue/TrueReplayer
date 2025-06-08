@@ -69,6 +69,8 @@ namespace TrueReplayer.Controllers
 
         public bool IsRecording() => recordingService.IsRecording;
 
+        public bool IsReplayInProgress() => replayService.IsReplaying;
+
         public void UpdateButtonStates()
         {
             recordingButton.IsEnabled = true;

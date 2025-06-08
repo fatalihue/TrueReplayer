@@ -6,15 +6,25 @@ namespace TrueReplayer.Models
     public class UserProfile
     {
         public static UserProfile Current { get; set; } = Default;
+
         public ObservableCollection<ActionItem> Actions { get; set; } = new();
+
+        [JsonIgnore]
         public string RecordingHotkey { get; set; } = "F9";
+
+        [JsonIgnore]
         public string ReplayHotkey { get; set; } = "F10";
+
+        [JsonIgnore]
         public string ProfileKeyToggleHotkey { get; set; } = "Ctrl+Shift+K";
+
         public bool RecordMouse { get; set; } = true;
         public bool RecordScroll { get; set; } = true;
         public bool RecordKeyboard { get; set; } = true;
+
         public bool UseCustomDelay { get; set; } = true;
         public int CustomDelay { get; set; } = 100;
+
         public bool EnableLoop { get; set; } = false;
         public int LoopCount { get; set; } = 0;
         public bool LoopIntervalEnabled { get; set; } = false;
@@ -63,8 +73,8 @@ namespace TrueReplayer.Models
             LoopCount = 0,
             LoopIntervalEnabled = false,
             LoopInterval = 1000,
-            AlwaysOnTop = false,
-            MinimizeToTray = false,
+            //AlwaysOnTop = false,
+            //MinimizeToTray = false,
             ProfileKeyEnabled = true,
             WindowX = -1,
             WindowY = -1,
