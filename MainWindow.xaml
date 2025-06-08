@@ -210,6 +210,10 @@
                                 <TextBlock Text="Start Replay" Foreground="White" Margin="0,5,0,0" Padding="0"/>
                                 <TextBox x:Name="ToggleReplayTextBox" x:FieldModifier="public" Width="Auto" IsReadOnly="True" />
                             </StackPanel>
+                            <StackPanel Spacing="1">
+                                <TextBlock Text="Toggle Profile Keys" Foreground="White" Margin="0,5,0,0" Padding="0"/>
+                                <TextBox x:Name="ToggleProfileKeyTextBox" x:FieldModifier="public" Width="Auto" IsReadOnly="True" />
+                            </StackPanel>
                         </StackPanel>
 
                     </StackPanel>

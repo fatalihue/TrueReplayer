@@ -12,7 +12,7 @@ using TrueReplayer.Models;
 using TrueReplayer.Services;
 using Windows.System;
 using Windows.UI.Core;
-using TrueReplayer.Interop; // Added namespace
+using TrueReplayer.Interop;
 
 namespace TrueReplayer.Managers
 {
@@ -36,7 +36,6 @@ namespace TrueReplayer.Managers
 
             e.Handled = true;
 
-            // Use NativeMethods to check key states
             bool ctrl = (NativeMethods.GetAsyncKeyState(0x11) & 0x8000) != 0; // VK_CONTROL
             bool alt = (NativeMethods.GetAsyncKeyState(0x12) & 0x8000) != 0;  // VK_MENU (Alt)
             bool shift = (NativeMethods.GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
@@ -52,14 +51,10 @@ namespace TrueReplayer.Managers
 
             string newKey = string.Join("+", parts);
 
-            // Only update if the key is valid and not empty
-            if (!string.IsNullOrEmpty(newKey))
-            {
-                item.Key = newKey;
-                var selectedIndex = actionsDataGrid.SelectedIndex;
-                actionsDataGrid.SelectedItem = null;
-                actionsDataGrid.SelectedIndex = selectedIndex;
-            }
+            item.Key = newKey;
+            var selectedIndex = actionsDataGrid.SelectedIndex;
+            actionsDataGrid.SelectedItem = null;
+            actionsDataGrid.SelectedIndex = selectedIndex;
         }
 
         public void HandleRecordingButtonClick()
@@ -100,6 +95,7 @@ namespace TrueReplayer.Managers
                 Actions = window.Actions,
                 RecordingHotkey = window.ToggleRecordingTextBox.Text,
                 ReplayHotkey = window.ToggleReplayTextBox.Text,
+                ProfileKeyToggleHotkey = window.ToggleProfileKeyTextBox.Text, // Nova propriedade
                 RecordMouse = window.RecordMouseSwitch.IsOn,
                 RecordScroll = window.RecordScrollSwitch.IsOn,
                 RecordKeyboard = window.RecordKeyboardSwitch.IsOn,
@@ -124,6 +120,7 @@ namespace TrueReplayer.Managers
 
             window.ToggleRecordingTextBox.Text = profile.RecordingHotkey;
             window.ToggleReplayTextBox.Text = profile.ReplayHotkey;
+            window.ToggleProfileKeyTextBox.Text = profile.ProfileKeyToggleHotkey; // Aplica nova hotkey
             window.RecordMouseSwitch.IsOn = profile.RecordMouse;
             window.RecordScrollSwitch.IsOn = profile.RecordScroll;
             window.RecordKeyboardSwitch.IsOn = profile.RecordKeyboard;
@@ -133,8 +130,9 @@ namespace TrueReplayer.Managers
             window.LoopCountTextBox.Text = profile.LoopCount.ToString();
             window.LoopIntervalSwitch.IsOn = profile.LoopIntervalEnabled;
             window.LoopIntervalTextBox.Text = profile.LoopInterval.ToString();
+            window.ProfileKeySwitch.IsOn = profile.ProfileKeyEnabled;
 
-            InputHookManager.UpdateHotkeys(profile.RecordingHotkey, profile.ReplayHotkey);
+            InputHookManager.UpdateHotkeys(profile.RecordingHotkey, profile.ReplayHotkey, profile.ProfileKeyToggleHotkey);
 
             window.AlwaysOnTopSwitch_Toggled(null, null);
             window.UpdateButtonStates();
@@ -145,19 +143,23 @@ namespace TrueReplayer.Managers
     {
         private readonly TextBox recordingTextBox;
         private readonly TextBox replayTextBox;
+        private readonly TextBox profileKeyToggleTextBox; // Novo TextBox
 
         public string RecordingHotkey => UserProfile.Current.RecordingHotkey;
         public string ReplayHotkey => UserProfile.Current.ReplayHotkey;
+        public string ProfileKeyToggleHotkey => UserProfile.Current.ProfileKeyToggleHotkey; // Nova propriedade
 
         public event Action<string>? OnHotkeyChanged;
 
-        public HotkeyManager(TextBox recordingTextBox, TextBox replayTextBox)
+        public HotkeyManager(TextBox recordingTextBox, TextBox replayTextBox, TextBox profileKeyToggleTextBox)
         {
             this.recordingTextBox = recordingTextBox;
             this.replayTextBox = replayTextBox;
+            this.profileKeyToggleTextBox = profileKeyToggleTextBox;
 
             recordingTextBox.Text = RecordingHotkey;
             replayTextBox.Text = ReplayHotkey;
+            profileKeyToggleTextBox.Text = ProfileKeyToggleHotkey;
         }
 
         public void HandlePreviewKeyDown(object sender, KeyRoutedEventArgs e)
@@ -166,23 +168,62 @@ namespace TrueReplayer.Managers
             textBox.Focus(FocusState.Keyboard);
             e.Handled = true;
 
-            string? newKey = KeyUtils.NormalizeKeyName((int)e.Key);
-            if (string.IsNullOrEmpty(newKey)) return;
+            // Verifica modificadores
+            bool ctrl = (NativeMethods.GetAsyncKeyState(0x11) & 0x8000) != 0; // VK_CONTROL
+            bool alt = (NativeMethods.GetAsyncKeyState(0x12) & 0x8000) != 0;  // VK_MENU (Alt)
+            bool shift = (NativeMethods.GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
 
-            var profileHotkeys = InputHookManager.ProfileHotkeys.Values;
+            int vkCode = (int)e.Key;
 
-            if (profileHotkeys.Contains(newKey, StringComparer.OrdinalIgnoreCase))
+            // Ignora teclas modificadoras sozinhas
+            if (vkCode == 0x10 || vkCode == 0x11 || vkCode == 0x12 || // Shift, Ctrl, Alt
+                vkCode == 0xA0 || vkCode == 0xA1 || // LeftShift, RightShift
+                vkCode == 0xA2 || vkCode == 0xA3 || // LeftCtrl, RightCtrl
+                vkCode == 0xA4 || vkCode == 0xA5)   // LeftAlt, RightAlt
             {
-                System.Diagnostics.Debug.WriteLine($"Hotkey '{newKey}' está em uso como Profile Key e não pode ser atribuída.");
+                var parts = new List<string>();
+                if (ctrl) parts.Add("Ctrl");
+                if (alt) parts.Add("Alt");
+                if (shift) parts.Add("Shift");
+                textBox.Text = string.Join("+", parts);
                 return;
             }
 
-            if (newKey == RecordingHotkey || newKey == ReplayHotkey) return;
+            string? mainKey = KeyUtils.NormalizeKeyName(vkCode) ?? e.Key.ToString();
+            if (string.IsNullOrEmpty(mainKey)) return;
+
+            var keyParts = new List<string>(); // Renomeado para evitar conflito
+            if (ctrl) keyParts.Add("Ctrl");
+            if (alt) keyParts.Add("Alt");
+            if (shift) keyParts.Add("Shift");
+            if (!keyParts.Contains(mainKey, StringComparer.OrdinalIgnoreCase))
+                keyParts.Add(mainKey);
+
+            string newKey = string.Join("+", keyParts);
+
+            // Verifica se a hotkey já está em uso
+            var profileHotkeys = InputHookManager.ProfileHotkeys.Values;
+            var existingHotkeys = new List<string> { RecordingHotkey, ReplayHotkey, ProfileKeyToggleHotkey };
+            if (textBox == recordingTextBox)
+                existingHotkeys.Remove(RecordingHotkey);
+            else if (textBox == replayTextBox)
+                existingHotkeys.Remove(ReplayHotkey);
+            else if (textBox == profileKeyToggleTextBox)
+                existingHotkeys.Remove(ProfileKeyToggleHotkey);
+
+            if (profileHotkeys.Contains(newKey, StringComparer.OrdinalIgnoreCase) ||
+                existingHotkeys.Contains(newKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"Hotkey '{newKey}' já está em uso.");
+                return;
+            }
 
             if (textBox == recordingTextBox)
                 UserProfile.Current.RecordingHotkey = newKey;
             else if (textBox == replayTextBox)
                 UserProfile.Current.ReplayHotkey = newKey;
+            else if (textBox == profileKeyToggleTextBox)
+                UserProfile.Current.ProfileKeyToggleHotkey = newKey;
             else return;
 
             textBox.Text = newKey;
@@ -190,7 +231,8 @@ namespace TrueReplayer.Managers
 
             InputHookManager.UpdateHotkeys(
                 UserProfile.Current.RecordingHotkey,
-                UserProfile.Current.ReplayHotkey);
+                UserProfile.Current.ReplayHotkey,
+                UserProfile.Current.ProfileKeyToggleHotkey);
 
             OnHotkeyChanged?.Invoke(newKey);
         }

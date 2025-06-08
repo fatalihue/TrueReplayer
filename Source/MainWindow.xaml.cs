@@ -66,7 +66,7 @@ namespace TrueReplayer
 
             TrayIconService.Initialize(this, hwnd);
 
-            string iconPath = Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico");  // Caminho alterado
+            string iconPath = Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico");
             IntPtr hIcon = LoadImage(IntPtr.Zero, iconPath, 1, 0, 0, 0x00000010);
             const int WM_SETICON = 0x80;
             SendMessage(hwnd, WM_SETICON, (IntPtr)1, hIcon);
@@ -133,6 +133,9 @@ namespace TrueReplayer
             ToggleReplayTextBox.GotFocus += (s, e) => InputHookManager.IgnoreProfileHotkeys = true;
             ToggleReplayTextBox.LostFocus += (s, e) => InputHookManager.IgnoreProfileHotkeys = false;
 
+            ToggleProfileKeyTextBox.GotFocus += (s, e) => InputHookManager.IgnoreProfileHotkeys = true;
+            ToggleProfileKeyTextBox.LostFocus += (s, e) => InputHookManager.IgnoreProfileHotkeys = false;
+
             WindowAppearanceService.Configure(this);
 
             SetupInputHooks();
@@ -160,6 +163,7 @@ namespace TrueReplayer
         {
             ToggleRecordingTextBox.Text = UserProfile.Current.RecordingHotkey;
             ToggleReplayTextBox.Text = UserProfile.Current.ReplayHotkey;
+            ToggleProfileKeyTextBox.Text = UserProfile.Current.ProfileKeyToggleHotkey;
 
             CustomDelayTextBox.Text = "100";
             UseCustomDelaySwitch.IsOn = true;
@@ -175,7 +179,7 @@ namespace TrueReplayer
 
             AlwaysOnTopSwitch_Toggled(null, null);
 
-            hotkeyManager = new HotkeyManager(ToggleRecordingTextBox, ToggleReplayTextBox);
+            hotkeyManager = new HotkeyManager(ToggleRecordingTextBox, ToggleReplayTextBox, ToggleProfileKeyTextBox);
 
             delayManager = new DelayManager(CustomDelayTextBox, Actions, ActionsDataGrid);
             CustomDelayTextBox.KeyDown += delayManager.HandleKeyDown;
@@ -194,6 +198,7 @@ namespace TrueReplayer
 
             ToggleRecordingTextBox.PreviewKeyDown += hotkeyManager.HandlePreviewKeyDown;
             ToggleReplayTextBox.PreviewKeyDown += hotkeyManager.HandlePreviewKeyDown;
+            ToggleProfileKeyTextBox.PreviewKeyDown += hotkeyManager.HandlePreviewKeyDown;
 
             actionEditorController = new ActionEditorController(
                 Actions,
@@ -203,7 +208,6 @@ namespace TrueReplayer
 
             ActionsDataGrid.KeyDown += actionEditorController.HandleKeyDown;
             ActionsDataGrid.PreparingCellForEdit += actionEditorController.HandlePreparingCellForEdit;
-            ActionsDataGrid.CellEditEnding += actionEditorController.HandleCellEditEnding; // Add this line
             ActionsDataGrid.Tapped += actionEditorController.HandleTapped;
         }
 
@@ -215,12 +219,15 @@ namespace TrueReplayer
             {
                 DispatcherQueue.TryEnqueue(async () =>
                 {
-                    if (key.StartsWith("PROFILE::") && !ProfileKeySwitch.IsOn)
+                    if (key == UserProfile.Current.ProfileKeyToggleHotkey)
                     {
+                        UserProfile.Current.ProfileKeyEnabled = !UserProfile.Current.ProfileKeyEnabled;
+                        ProfileKeySwitch.IsOn = UserProfile.Current.ProfileKeyEnabled;
+                        mainController.SetLastHotkeyPressed(key);
                         return;
                     }
 
-                    if (key.StartsWith("PROFILE::") && ProfileKeySwitch.IsOn && mainController.IsRecording())
+                    if (key.StartsWith("PROFILE::") && (!ProfileKeySwitch.IsOn || mainController.IsRecording()))
                     {
                         return;
                     }
@@ -433,7 +440,7 @@ namespace TrueReplayer
                 string name = inputTextBox.Text.Trim();
                 if (string.IsNullOrWhiteSpace(name)) return;
 
-                string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
+                string appFolder = AppContext.BaseDirectory;
                 string profileDir = Path.Combine(appFolder, "Profiles");
                 Directory.CreateDirectory(profileDir);
 
@@ -510,7 +517,7 @@ namespace TrueReplayer
                     bool shift = (NativeMethods.GetAsyncKeyState(0x10) & 0x8000) != 0; // VK_SHIFT
 
                     int vkCode = (int)args.Key;
-                    var parts = new List<string>(); // Declaração única de 'parts'
+                    var parts = new List<string>();
 
                     if (vkCode == 0x10 || vkCode == 0x11 || vkCode == 0x12 || // Shift, Ctrl, Alt
                         vkCode == 0xA0 || vkCode == 0xA1 || // LeftShift, RightShift

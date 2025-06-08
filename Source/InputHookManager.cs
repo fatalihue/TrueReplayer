@@ -37,7 +37,7 @@ namespace TrueReplayer
                 _keyboardHookId = NativeMethods.SetKeyboardHook(_keyboardProc);
         }
 
-        public static void UpdateHotkeys(string recordingKey, string replayKey)
+        public static void UpdateHotkeys(string recordingKey, string replayKey, string profileKeyToggleKey)
         {
             // Intencionalmente vazio para limpeza
         }
@@ -165,11 +165,6 @@ namespace TrueReplayer
 
                 bool isProfileKey = ProfileHotkeys.ContainsValue(key);
 
-                if (isProfileKey && !UserProfile.Current.ProfileKeyEnabled && !MainController.Instance.IsRecording())
-                {
-                    return NativeMethods.CallNextHookEx(_keyboardHookId, nCode, wParam, lParam);
-                }
-
                 if (isDown)
                 {
                     if (key == UserProfile.Current.RecordingHotkey)
@@ -179,6 +174,12 @@ namespace TrueReplayer
                     }
 
                     if (key == UserProfile.Current.ReplayHotkey)
+                    {
+                        OnHotkeyPressed?.Invoke(key);
+                        return (IntPtr)1;
+                    }
+
+                    if (key == UserProfile.Current.ProfileKeyToggleHotkey)
                     {
                         OnHotkeyPressed?.Invoke(key);
                         return (IntPtr)1;
