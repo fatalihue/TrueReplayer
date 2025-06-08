@@ -52,10 +52,14 @@ namespace TrueReplayer.Managers
 
             string newKey = string.Join("+", parts);
 
-            item.Key = newKey;
-            var selectedIndex = actionsDataGrid.SelectedIndex;
-            actionsDataGrid.SelectedItem = null;
-            actionsDataGrid.SelectedIndex = selectedIndex;
+            // Only update if the key is valid and not empty
+            if (!string.IsNullOrEmpty(newKey))
+            {
+                item.Key = newKey;
+                var selectedIndex = actionsDataGrid.SelectedIndex;
+                actionsDataGrid.SelectedItem = null;
+                actionsDataGrid.SelectedIndex = selectedIndex;
+            }
         }
 
         public void HandleRecordingButtonClick()

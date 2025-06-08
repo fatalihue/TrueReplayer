@@ -40,13 +40,19 @@ namespace TrueReplayer.Controllers
 
         public void HandlePreparingCellForEdit(object sender, DataGridPreparingCellForEditEventArgs e)
         {
+            InputHookManager.IgnoreProfileHotkeys = true; // Suppress profile hotkeys when editing starts
             if (e.Column.Header?.ToString() == "Delay")
             {
-                if (sender is TextBox textBox)
+                if (e.EditingElement is TextBox textBox)
                 {
                     textBox.DispatcherQueue.TryEnqueue(() => textBox.SelectAll());
                 }
             }
+        }
+
+        public void HandleCellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
+        {
+            InputHookManager.IgnoreProfileHotkeys = false; // Re-enable profile hotkeys when editing ends
         }
 
         public void HandleTapped(object sender, TappedRoutedEventArgs e)

@@ -203,6 +203,7 @@ namespace TrueReplayer
 
             ActionsDataGrid.KeyDown += actionEditorController.HandleKeyDown;
             ActionsDataGrid.PreparingCellForEdit += actionEditorController.HandlePreparingCellForEdit;
+            ActionsDataGrid.CellEditEnding += actionEditorController.HandleCellEditEnding; // Add this line
             ActionsDataGrid.Tapped += actionEditorController.HandleTapped;
         }
 
