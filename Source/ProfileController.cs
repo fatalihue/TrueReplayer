@@ -40,8 +40,10 @@ namespace TrueReplayer.Controllers
 
         public async Task SaveProfileAsync()
         {
-            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
-            string profileDir = Path.Combine(appFolder, "Profiles");
+            string profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "TrueReplayer", "Profiles"
+            );
 
             Directory.CreateDirectory(profileDir);
 
@@ -76,13 +78,15 @@ namespace TrueReplayer.Controllers
 
         public async Task LoadProfileAsync()
         {
-            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
-            string profileDir = Path.Combine(appFolder, "Profiles");
+            string profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "TrueReplayer", "Profiles"
+            );
 
             var dialog = new WinForms.OpenFileDialog
             {
                 Filter = "JSON file (*.json)|*.json",
-                InitialDirectory = Directory.Exists(profileDir) ? profileDir : appFolder
+                InitialDirectory = profileDir
             };
 
             if (dialog.ShowDialog() == WinForms.DialogResult.OK)
@@ -158,8 +162,10 @@ namespace TrueReplayer.Controllers
 
         private async void LoadProfileList()
         {
-            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
-            string profileDir = Path.Combine(appFolder, "Profiles");  // Alterado para "Profiles"
+            string profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "TrueReplayer", "Profiles"
+            );
 
             Directory.CreateDirectory(profileDir);
 
@@ -214,8 +220,10 @@ namespace TrueReplayer.Controllers
 
         private void SetupProfileWatcher()
         {
-            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
-            string profileDir = Path.Combine(appFolder, "Profiles");
+            string profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "TrueReplayer", "Profiles"
+            );
 
             if (!Directory.Exists(profileDir))
                 Directory.CreateDirectory(profileDir);

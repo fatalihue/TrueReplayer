@@ -12,11 +12,13 @@ namespace TrueReplayer.Services
     {
         private static string GetDefaultProfilePath()
         {
-            string appFolder = AppContext.BaseDirectory;  // Obtém a pasta raiz do aplicativo
-            string profileDir = Path.Combine(appFolder, "Profiles");  // Alterado para "Profiles"
+            string profileDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "TrueReplayer", "Profiles"
+            );
 
-            Directory.CreateDirectory(profileDir);  // Cria a pasta de perfis, se não existir
-            return Path.Combine(profileDir, "profile.json");  // Caminho completo para o perfil padrão
+            Directory.CreateDirectory(profileDir);
+            return Path.Combine(profileDir, "profile.json");
         }
 
         public static async Task SaveProfileAsync(string? filePath, UserProfile profile)
