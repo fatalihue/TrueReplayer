@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using TrueReplayer.Models;
 using TrueReplayer.Interop;
 using System.Threading.Tasks;
+using TrueReplayer; // Adiciona o namespace para MainWindow
 
 namespace TrueReplayer.Services
 {
@@ -15,10 +16,10 @@ namespace TrueReplayer.Services
         private const int WM_USER = 0x0400;
         private const int WM_LBUTTONDBLCLK = 0x0203;
         private const int WM_RBUTTONUP = 0x0205;
-
         private static IntPtr hwnd;
         private static NotifyIconData notifyIcon;
         private static bool isInitialized = false;
+        private static IntPtr currentIconHandle;
 
         public static void Initialize(object window, IntPtr windowHandle, bool showNotification = false)
         {
@@ -30,6 +31,15 @@ namespace TrueReplayer.Services
 
         public static void CreateTrayIcon(bool showNotification = false)
         {
+            if (isInitialized)
+                Shell_NotifyIcon(0x00000002, ref notifyIcon);
+
+            string iconPath = UserProfile.Current.ProfileKeyEnabled
+                ? Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico")
+                : Path.Combine(AppContext.BaseDirectory, "TrueReplayerRed.ico");
+
+            currentIconHandle = LoadImage(IntPtr.Zero, iconPath, 1, 0, 0, 0x00000010);
+
             notifyIcon = new NotifyIconData
             {
                 cbSize = (uint)Marshal.SizeOf(typeof(NotifyIconData)),
@@ -37,7 +47,7 @@ namespace TrueReplayer.Services
                 uID = 1,
                 uFlags = 0x01 | 0x02 | 0x04,
                 uCallbackMessage = WM_USER + 1,
-                hIcon = LoadImage(IntPtr.Zero, Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico"), 1, 0, 0, 0x00000010),
+                hIcon = currentIconHandle,
                 szTip = "TrueReplayer"
             };
 
@@ -47,7 +57,7 @@ namespace TrueReplayer.Services
             {
                 var trayIcon = new System.Windows.Forms.NotifyIcon
                 {
-                    Icon = new System.Drawing.Icon(Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico")),
+                    Icon = new System.Drawing.Icon(iconPath),
                     Visible = true,
                     BalloonTipTitle = "TrueReplayer está em segundo plano",
                     BalloonTipText = "Clique no ícone da bandeja para restaurar a janela."
@@ -56,6 +66,20 @@ namespace TrueReplayer.Services
                 trayIcon.ShowBalloonTip(3000);
                 Task.Delay(5000).ContinueWith(_ => trayIcon.Dispose());
             }
+        }
+
+        public static void UpdateTrayIcon()
+        {
+            Shell_NotifyIcon(0x00000002, ref notifyIcon);
+
+            string iconPath = UserProfile.Current.ProfileKeyEnabled
+                ? Path.Combine(AppContext.BaseDirectory, "TrueReplayer.ico")
+                : Path.Combine(AppContext.BaseDirectory, "TrueReplayerRed.ico");
+
+            currentIconHandle = LoadImage(IntPtr.Zero, iconPath, 1, 0, 0, 0x00000010);
+
+            notifyIcon.hIcon = currentIconHandle;
+            Shell_NotifyIcon(0x00000000, ref notifyIcon);
         }
 
         public static void ShowMinimizeBalloon()
@@ -115,8 +139,8 @@ namespace TrueReplayer.Services
         [DllImport("user32.dll")] private static extern IntPtr CreatePopupMenu();
         [DllImport("user32.dll")] private static extern bool AppendMenu(IntPtr hMenu, uint uFlags, uint uIDNewItem, string lpNewItem);
         [DllImport("user32.dll")] private static extern int TrackPopupMenu(IntPtr hMenu, uint uFlags, int x, int y, int nReserved, IntPtr hWnd, IntPtr prcRect);
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr LoadImage(IntPtr hInst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
         [DllImport("shell32.dll", CharSet = CharSet.Unicode)] private static extern bool Shell_NotifyIcon(uint dwMessage, ref NotifyIconData lpdata);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern IntPtr LoadImage(IntPtr hInst, string lpszName, uint uType, int cxDesired, int cyDesired, uint fuLoad);
         [DllImport("user32.dll")] private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
     }
 

@@ -158,6 +158,7 @@ namespace TrueReplayer
                 {
                     UserProfile.Current = defaultProfile;
                     UISettingsManager.ApplyToUI(this, defaultProfile);
+                    TrayIconService.UpdateTrayIcon(); // Atualiza o ícone ao carregar perfil
                 }
 
                 var hotkeys = await profileController.GetProfileHotkeys();
@@ -167,6 +168,7 @@ namespace TrueReplayer
             ProfileKeySwitch.Toggled += (sender, args) =>
             {
                 UserProfile.Current.ProfileKeyEnabled = ProfileKeySwitch.IsOn;
+                TrayIconService.UpdateTrayIcon(); // Atualiza o ícone na bandeja
             };
         }
 
@@ -301,6 +303,7 @@ namespace TrueReplayer
                                 profile.LoopInterval.ToString());
 
                             profileController.UpdateProfileColors(profileName);
+                            TrayIconService.UpdateTrayIcon(); // Atualiza o ícone ao carregar perfil
                         }
                     }
                 });
@@ -414,6 +417,7 @@ namespace TrueReplayer
 
             UISettingsManager.ApplyToUI(this, UserProfile.Current);
             profileController.UpdateProfileColors(null);
+            TrayIconService.UpdateTrayIcon(); // Atualiza o ícone ao redefinir perfil
         }
 
         private async void ProfilesListBox_ItemClick(object sender, ItemClickEventArgs e)

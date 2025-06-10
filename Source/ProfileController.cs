@@ -284,6 +284,7 @@ namespace TrueReplayer.Controllers
                     UISettingsManager.ApplyToUI(window, profile);
                     selectedProfileName = selectedProfile;
                     UpdateProfileColors(selectedProfileName);
+                    TrayIconService.UpdateTrayIcon(); // Atualiza o ícone ao carregar perfil
                 }
             }
         }
